@@ -49,7 +49,7 @@ local brackets = {
 
 M = {
   autosnippet(
-    { trig = "lr([aAbBcmp])", name = "left right", dscr = "left right delimiters", regTrig = true, hidden = true },
+    { trig = "lr([aAbBcmpn])", name = "left right", dscr = "left right delimiters", regTrig = true, hidden = true },
     fmta(
       [[
     \left<> <> \right<><>
