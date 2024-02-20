@@ -37,32 +37,33 @@ local scaffolding = require("luasnip-latex-snippets.luasnippets.tex.utils.scaffo
 
 -- brackets
 local brackets = {
-	a = { "\\langle", "\\rangle" },
-	A = { "Angle", "Angle" },
-	b = { "brack", "brack" },
-	B = { "Brack", "Brack" },
-	c = { "brace", "brace" },
-	m = { "|", "|" },
-	p = { "(", ")" },
+  a = { "\\langle", "\\rangle" },
+  A = { "Angle", "Angle" },
+  b = { "[", "]" },
+  B = { "Brack", "Brack" },
+  c = { "brace", "brace" },
+  m = { "|", "|" },
+  p = { "(", ")" },
+  n = { "\\lVert", "\\rVert" },
 }
 
 M = {
-    autosnippet(
-	{ trig = "lr([aAbBcmp])", name = "left right", dscr = "left right delimiters", regTrig = true, hidden = true },
-	fmta(
-	[[
+  autosnippet(
+    { trig = "lr([aAbBcmp])", name = "left right", dscr = "left right delimiters", regTrig = true, hidden = true },
+    fmta(
+      [[
     \left<> <> \right<><>
     ]],
-	{f(function(_, snip)
+      { f(function(_, snip)
         cap = snip.captures[1] or 'p'
         return brackets[cap][1]
-    end),
-    d(1, scaffolding.get_visual),
-    f(function(_, snip)
-        cap = snip.captures[1] or 'p'
-        return brackets[cap][2]
-    end),
-    i(0)}),
+      end),
+        d(1, scaffolding.get_visual),
+        f(function(_, snip)
+          cap = snip.captures[1] or 'p'
+          return brackets[cap][2]
+        end),
+        i(0) }),
     { condition = tex.in_math, show_condition = tex.in_math }),
 }
 

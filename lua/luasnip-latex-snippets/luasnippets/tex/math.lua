@@ -83,6 +83,20 @@ local generate_cases = function(args, snip)
   return sn(nil, nodes)
 end
 
+local generate_array = function(args, snip)
+  local rows = tonumber(snip.captures[1]) or 2 -- default option 2 for cases
+  local nodes = {}
+  local ins_indx = 1
+  for j = 1, rows do
+    table.insert(nodes, r(ins_indx, tostring(j) .. "x1", i(1)))
+    ins_indx = ins_indx + 1
+    table.insert(nodes, t({ "\\\\", "" }))
+  end
+  -- fix last node.
+  table.remove(nodes, #nodes)
+  return sn(nil, nodes)
+end
+
 M = {
   -- Math modes
   autosnippet(
@@ -212,7 +226,7 @@ M = {
     <>
     .\end{array}
     ]],
-      { d(1, generate_cases) }
+      { d(1, generate_array) }
     ),
     { condition = tex.in_math, show_condition = tex.in_math }
   ),
