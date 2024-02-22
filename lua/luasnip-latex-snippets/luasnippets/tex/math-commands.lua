@@ -131,7 +131,7 @@ M = {
     \sum<> <>
     ]],
       {
-        c(1, { fmta([[_{<>}^{<>}]], { i(1, "i = 0"), i(2, "\\infty") }), t("") }),
+        c(1, { t(""), fmta([[_{<>}^{<>}]], { i(1, "i = 0"), i(2, "\\infty") }) }),
         i(0) }),
     { condition = tex.in_math, show_condition = tex.in_math }),
 
