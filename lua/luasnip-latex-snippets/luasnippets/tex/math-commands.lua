@@ -60,8 +60,13 @@ M = {
     { condition = tex.in_math, show_condition = tex.in_math }
   ),
   autosnippet(
-    { trig = "cdots", wordTrig = false },
+    { trig = "\\cdot*", wordTrig = false },
     { t("\\cdots") },
+    { condition = tex.in_math, show_condition = tex.in_math }
+  ),
+  autosnippet(
+    { trig = "quad", wordTrig = false },
+    { t("\\quad") },
     { condition = tex.in_math, show_condition = tex.in_math }
   ),
   autosnippet({ trig = "inv", wordTrig = false },
