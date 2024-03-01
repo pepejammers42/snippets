@@ -107,6 +107,16 @@ M = {
     { condition = tex.in_math, show_condition = tex.in_math }
   ),
   autosnippet(
+    { trig = "uset", name = "underset", dscr = "underset (general)" },
+    fmta(
+      [[
+    \underset{<>}{<>}<>
+        ]],
+      { i(1), i(2), i(0) }
+    ),
+    { condition = tex.in_math, show_condition = tex.in_math }
+  ),
+  autosnippet(
     { trig = "ubrace", name = "underbrace", dscr = "underbrace (general)" },
     fmta(
       [[
