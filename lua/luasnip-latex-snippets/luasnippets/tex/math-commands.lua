@@ -254,6 +254,7 @@ local greek_specs = {
   vphi = { context = { name = "φ" }, command = [[\varphi]] },
   veps = { context = { name = "ε" }, command = [[\varepsilon]] },
   phi = { context = { name = 'φ' }, command = [[\phi]] },
+  tau = { context = { name = 'tau' }, command = [[\tau]] },
 }
 
 local greek_snippets = {}
