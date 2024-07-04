@@ -69,6 +69,11 @@ M = {
     { t("\\quad") },
     { condition = tex.in_math, show_condition = tex.in_math }
   ),
+  autosnippet(
+    { trig = "||", wordTrig = false },
+    { t("\\Big|") },
+    { condition = tex.in_math, show_condition = tex.in_math }
+  ),
   autosnippet({ trig = "inv", wordTrig = false },
     { t("^{-1}") },
     { condition = tex.in_math, show_condition = tex.in_math }),
