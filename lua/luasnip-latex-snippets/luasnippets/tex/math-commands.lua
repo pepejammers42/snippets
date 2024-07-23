@@ -70,6 +70,16 @@ M = {
     { condition = tex.in_math, show_condition = tex.in_math }
   ),
   autosnippet(
+    { trig = "Var", wordTrig = false },
+    { t("\\text{Var}") },
+    { condition = tex.in_math, show_condition = tex.in_math }
+  ),
+  autosnippet(
+    { trig = "mid", wordTrig = false },
+    { t("\\mid") },
+    { condition = tex.in_math, show_condition = tex.in_math }
+  ),
+  autosnippet(
     { trig = "||", wordTrig = false },
     { t("\\Big|") },
     { condition = tex.in_math, show_condition = tex.in_math }
