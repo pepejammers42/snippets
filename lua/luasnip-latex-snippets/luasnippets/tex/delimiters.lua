@@ -45,12 +45,12 @@ local brackets = {
   m = { "|", "|" },
   p = { "(", ")" },
   n = { "\\lVert", "\\rVert" },
-  f = { "\\lceil", "\\rciel" },
+  f = { "\\lceil", "\\rceil" },
 }
 
 M = {
   autosnippet(
-    { trig = "lr([aAbBcmpn])", name = "left right", dscr = "left right delimiters", regTrig = true, hidden = true },
+    { trig = "lr([aAbBcmpnf])", name = "left right", dscr = "left right delimiters", regTrig = true, hidden = true },
     fmta(
       [[
     \left<> <> \right<><>
