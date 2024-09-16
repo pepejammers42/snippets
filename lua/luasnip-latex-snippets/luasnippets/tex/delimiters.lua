@@ -41,11 +41,11 @@ local brackets = {
   A = { "Angle", "Angle" },
   b = { "[", "]" },
   B = { "Brack", "Brack" },
-  c = { "brace", "brace" },
+  c = { "\\lceil", "\\rceil" },
   m = { "|", "|" },
   p = { "(", ")" },
   n = { "\\lVert", "\\rVert" },
-  f = { "\\lceil", "\\rceil" },
+  f = { "\\lfloor", "\\rfloor" },
 }
 
 M = {
