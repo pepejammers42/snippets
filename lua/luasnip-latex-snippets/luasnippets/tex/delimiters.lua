@@ -45,6 +45,7 @@ local brackets = {
   m = { "|", "|" },
   p = { "(", ")" },
   n = { "\\lVert", "\\rVert" },
+  f = { "\\lceil", "\\rciel" },
 }
 
 M = {
