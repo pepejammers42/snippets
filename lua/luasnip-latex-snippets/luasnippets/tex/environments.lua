@@ -60,33 +60,36 @@ M = {
     \end{itemize}
     ]],
 			{
-				c(1, { i(0), sn(
-					nil,
-					fmta(
-						[[
+				c(1, {
+					i(0),
+					sn(
+						nil,
+						fmta(
+							[[
         [<>] <>
         ]],
-						{ i(1), i(0) }
-					)
-				) }),
+							{ i(1), i(0) }
+						)
+					),
+				}),
 			}
 		),
 		{ condition = line_begin }
 	),
-    autosnippet(
-        { trig = "lesson", name = "lesson", dscr = "create a lesson" },
-        fmt("\\lesson{{{}}}{{on {} at {}}}{{{}}}", {
-            i(1),
-            f(function()
-                return os.date("%d %b %Y")
-            end, {}),
-            f(function()
-                return os.date("%H:%M")
-            end, {}),
-            i(2),
-        }),
-        { condition = line_begin }
-    ),
+	autosnippet(
+		{ trig = "lesson", name = "lesson", dscr = "create a lesson" },
+		fmt("\\lesson{{{}}}{{on {} at {}}}{{{}}}", {
+			i(1),
+			f(function()
+				return os.date("%d %b %Y")
+			end, {}),
+			f(function()
+				return os.date("%H:%M")
+			end, {}),
+			i(2),
+		}),
+		{ condition = line_begin }
+	),
 
 	-- requires enumitem
 	autosnippet(
@@ -142,6 +145,22 @@ M = {
 			{ i(1), i(0) }
 		),
 		{ condition = in_bullets_cond * line_begin, show_condition = in_bullets_cond * line_begin }
+	),
+	-- end of section,
+
+	autosnippet(
+		{ trig = "eos", name = "asterisk row", dscr = "Centered asterisks row with spacing" },
+		fmta(
+			[[
+    \begin{center}
+    \vspace{0.1in}
+    * \quad \quad\quad * \quad\quad\quad *
+    \end{center}
+    <>
+    ]],
+			{ i(0) }
+		),
+		{ condition = line_begin }
 	),
 }
 
