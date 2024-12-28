@@ -138,7 +138,7 @@ M = {
     <>
     \end{aligned<>}
     ]],
-			{ c(1, { t("*"), t(""), t("ed") }), i(2), rep(1) }
+			{ c(1, { t(""), t(""), t("ed") }), i(2), rep(1) }
 		), -- in order of least-most used
 		{ condition = line_begin, show_condition = line_begin }
 	),
