@@ -57,6 +57,7 @@ local MATH_ENVIRONMENTS = {
 	align = true,
 	math = true,
 	array = true,
+	aligned = true,
 }
 local MATH_NODES = {
 	displayed_equation = true,

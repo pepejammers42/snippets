@@ -151,7 +151,7 @@ M = {
     ]],
 			{ c(1, { t("="), t("\\leq"), i(1) }), i(2) }
 		),
-		{ condition = tex.in_align, show_condition = tex.in_align }
+		{ condition = tex.in_mathzone, show_condition = tex.in_mathzone }
 	),
 
 	autosnippet(
@@ -211,7 +211,7 @@ M = {
 				end),
 			}
 		),
-		{ condition = tex.in_math, show_condition = tex.in_math }
+		{ condition = tex.in_mathzone, show_condition = tex.in_mathzone }
 	),
 
 	autosnippet(
@@ -224,7 +224,7 @@ M = {
     ]],
 			{ d(1, generate_cases) }
 		),
-		{ condition = tex.in_math, show_condition = tex.in_math }
+		{ condition = tex.in_mathzone, show_condition = tex.in_mathzone }
 	),
 
 	autosnippet(
@@ -237,7 +237,7 @@ M = {
     ]],
 			{ d(1, generate_array) }
 		),
-		{ condition = tex.in_math, show_condition = tex.in_math }
+		{ condition = tex.in_mathzone, show_condition = tex.in_mathzone }
 	),
 	autosnippet(
 		{ trig = "(%a)(%d)", regTrig = true, name = "auto subscript", dscr = "hi" },
@@ -249,7 +249,7 @@ M = {
 				return snip.captures[2]
 			end),
 		}, { delimiters = "<>" }),
-		{ condition = tex.in_math }
+		{ condition = tex.in_mathzone }
 	),
 
 	autosnippet(
@@ -262,14 +262,14 @@ M = {
 				return snip.captures[2]
 			end),
 		}, { delimiters = "<>" }),
-		{ condition = tex.in_math }
+		{ condition = tex.in_mathzone }
 	),
 	s(
 		{ trig = "sym", wordTrig = false, snippetType = "autosnippet", priority = 2000 },
 		fmta("sympy <> sympy", {
 			d(1, get_visual),
 		}),
-		{ condition = tex.in_math }
+		{ condition = tex.in_mathzone }
 	),
 	s(
 		{ trig = "sympy.*sympys", regTrig = true, desc = "Sympy block evaluator", snippetType = "autosnippet" },

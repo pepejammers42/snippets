@@ -50,52 +50,52 @@ M = {
 	autosnippet(
 		{ trig = "cb", wordTrig = false },
 		{ t("^3") },
-		{ condition = tex.in_math, show_condition = tex.in_math }
+		{ condition = tex.in_mathzone, show_condition = tex.in_mathzone }
 	),
 	autosnippet(
 		{ trig = "compl", wordTrig = false },
 		{ t("^{c}") },
-		{ condition = tex.in_math, show_condition = tex.in_math }
+		{ condition = tex.in_mathzone, show_condition = tex.in_mathzone }
 	),
 	autosnippet(
 		{ trig = "vtr", wordTrig = false },
 		{ t("^{T}") },
-		{ condition = tex.in_math, show_condition = tex.in_math }
+		{ condition = tex.in_mathzone, show_condition = tex.in_mathzone }
 	),
 	autosnippet(
 		{ trig = "...", wordTrig = false },
 		{ t("\\ldots") },
-		{ condition = tex.in_math, show_condition = tex.in_math }
+		{ condition = tex.in_mathzone, show_condition = tex.in_mathzone }
 	),
 	autosnippet(
 		{ trig = "\\cdot*", wordTrig = false },
 		{ t("\\cdots") },
-		{ condition = tex.in_math, show_condition = tex.in_math }
+		{ condition = tex.in_mathzone, show_condition = tex.in_mathzone }
 	),
 	autosnippet(
 		{ trig = "quad", wordTrig = false },
 		{ t("\\quad") },
-		{ condition = tex.in_math, show_condition = tex.in_math }
+		{ condition = tex.in_mathzone, show_condition = tex.in_mathzone }
 	),
 	autosnippet(
 		{ trig = "Var", wordTrig = false },
 		{ t("\\text{Var}") },
-		{ condition = tex.in_math, show_condition = tex.in_math }
+		{ condition = tex.in_mathzone, show_condition = tex.in_mathzone }
 	),
 	autosnippet(
 		{ trig = "mid", wordTrig = false },
 		{ t("\\mid") },
-		{ condition = tex.in_math, show_condition = tex.in_math }
+		{ condition = tex.in_mathzone, show_condition = tex.in_mathzone }
 	),
 	autosnippet(
 		{ trig = "||", wordTrig = false },
 		{ t("\\Big|") },
-		{ condition = tex.in_math, show_condition = tex.in_math }
+		{ condition = tex.in_mathzone, show_condition = tex.in_mathzone }
 	),
 	autosnippet(
 		{ trig = "inv", wordTrig = false },
 		{ t("^{-1}") },
-		{ condition = tex.in_math, show_condition = tex.in_math }
+		{ condition = tex.in_mathzone, show_condition = tex.in_mathzone }
 	),
 
 	-- fractions
@@ -107,7 +107,7 @@ M = {
     ]],
 			{ i(1), i(2), i(0) }
 		),
-		{ condition = tex.in_math, show_condition = tex.in_math }
+		{ condition = tex.in_mathzone, show_condition = tex.in_mathzone }
 	),
 	autosnippet(
 		{
@@ -124,7 +124,7 @@ M = {
 				return snip.captures[1]
 			end), i(1), i(0) }
 		),
-		{ condition = tex.in_math, show_condition = tex.in_math }
+		{ condition = tex.in_mathzone, show_condition = tex.in_mathzone }
 	),
 
 	autosnippet(
@@ -135,7 +135,7 @@ M = {
         ]],
 			{ i(1), i(2), i(0) }
 		),
-		{ condition = tex.in_math, show_condition = tex.in_math }
+		{ condition = tex.in_mathzone, show_condition = tex.in_mathzone }
 	),
 	autosnippet(
 		{ trig = "uset", name = "underset", dscr = "underset (general)" },
@@ -145,7 +145,7 @@ M = {
         ]],
 			{ i(1), i(2), i(0) }
 		),
-		{ condition = tex.in_math, show_condition = tex.in_math }
+		{ condition = tex.in_mathzone, show_condition = tex.in_mathzone }
 	),
 	autosnippet(
 		{ trig = "ubrace", name = "underbrace", dscr = "underbrace (general)" },
@@ -155,7 +155,7 @@ M = {
       ]],
 			{ i(1), i(0) }
 		),
-		{ condition = tex.in_math, show_condition = tex.in_math }
+		{ condition = tex.in_mathzone, show_condition = tex.in_mathzone }
 	),
 
 	autosnippet(
@@ -170,7 +170,7 @@ M = {
 				i(0),
 			}
 		),
-		{ condition = tex.in_math, show_condition = tex.in_math }
+		{ condition = tex.in_mathzone, show_condition = tex.in_mathzone }
 	),
 
 	autosnippet(
@@ -184,7 +184,7 @@ M = {
 				i(0),
 			}
 		),
-		{ condition = tex.in_math, show_condition = tex.in_math }
+		{ condition = tex.in_mathzone, show_condition = tex.in_mathzone }
 	),
 
 	autosnippet(
@@ -195,7 +195,7 @@ M = {
     ]],
 			{ c(1, { fmta([[_{<>}^{<>}]], { i(1, "i = 0"), i(2, "\\infty") }), t("") }), i(0) }
 		),
-		{ condition = tex.in_math, show_condition = tex.in_math }
+		{ condition = tex.in_mathzone, show_condition = tex.in_mathzone }
 	),
 
 	autosnippet(
@@ -206,7 +206,7 @@ M = {
     ]],
 			{ c(1, { fmta([[_{<>}^{<>}]], { i(1, "i = 0"), i(2, "\\infty") }), t("") }), i(0) }
 		),
-		{ condition = tex.in_math, show_condition = tex.in_math }
+		{ condition = tex.in_mathzone, show_condition = tex.in_mathzone }
 	),
 
 	autosnippet(
@@ -223,7 +223,7 @@ M = {
 				i(0),
 			}
 		),
-		{ condition = tex.in_math, show_condition = tex.in_math }
+		{ condition = tex.in_mathzone, show_condition = tex.in_mathzone }
 	),
 
 	autosnippet(
@@ -234,7 +234,7 @@ M = {
     ]],
 			{ c(1, { fmta([[_{<>}^{<>}]], { i(1, "i = 0"), i(2, "\\infty") }), t("") }), i(0) }
 		),
-		{ condition = tex.in_math, show_condition = tex.in_math }
+		{ condition = tex.in_mathzone, show_condition = tex.in_mathzone }
 	),
 
 	autosnippet(
@@ -245,7 +245,7 @@ M = {
     ]],
 			{ c(1, { fmta([[_{<>}^{<>}]], { i(1, "i = 0"), i(2, "\\infty") }), t("") }), i(0) }
 		),
-		{ condition = tex.in_math, show_condition = tex.in_math }
+		{ condition = tex.in_mathzone, show_condition = tex.in_mathzone }
 	),
 
 	autosnippet(
@@ -256,7 +256,7 @@ M = {
     ]],
 			{ i(1), i(2), i(0) }
 		),
-		{ condition = tex.in_math, show_condition = tex.in_math }
+		{ condition = tex.in_mathzone, show_condition = tex.in_mathzone }
 	),
 
 	autosnippet(
@@ -267,7 +267,7 @@ M = {
     ]],
 			{ i(1), i(2), i(0) }
 		),
-		{ condition = tex.in_math, show_condition = tex.in_math }
+		{ condition = tex.in_mathzone, show_condition = tex.in_mathzone }
 	),
 }
 
@@ -299,7 +299,7 @@ local auto_backslash_specs = {
 
 local auto_backslash_snippets = {}
 for _, v in ipairs(auto_backslash_specs) do
-	table.insert(auto_backslash_snippets, auto_backslash_snippet({ trig = v }, { condition = tex.in_math }))
+	table.insert(auto_backslash_snippets, auto_backslash_snippet({ trig = v }, { condition = tex.in_mathzone }))
 end
 vim.list_extend(M, auto_backslash_snippets)
 
@@ -338,7 +338,7 @@ local greek_snippets = {}
 for k, v in pairs(greek_specs) do
 	table.insert(
 		greek_snippets,
-		symbol_snippet(vim.tbl_deep_extend("keep", { trig = k }, v.context), v.command, { condition = tex.in_math })
+		symbol_snippet(vim.tbl_deep_extend("keep", { trig = k }, v.context), v.command, { condition = tex.in_mathzone })
 	)
 end
 vim.list_extend(M, greek_snippets)
@@ -413,7 +413,7 @@ local symbol_snippets = {}
 for k, v in pairs(symbol_specs) do
 	table.insert(
 		symbol_snippets,
-		symbol_snippet(vim.tbl_deep_extend("keep", { trig = k }, v.context), v.command, { condition = tex.in_math })
+		symbol_snippet(vim.tbl_deep_extend("keep", { trig = k }, v.context), v.command, { condition = tex.in_mathzone })
 	)
 end
 vim.list_extend(M, symbol_snippets)
@@ -494,7 +494,7 @@ for k, v in pairs(single_command_math_specs) do
 		single_command_snippet(
 			vim.tbl_deep_extend("keep", { trig = k, snippetType = "autosnippet" }, v.context),
 			v.command,
-			{ condition = tex.in_math },
+			{ condition = tex.in_mathzone },
 			v.ext or {}
 		)
 	)
@@ -592,7 +592,7 @@ for k, v in pairs(postfix_math_specs) do
 		postfix_snippet(
 			vim.tbl_deep_extend("keep", { trig = k, snippetType = "autosnippet" }, v.context),
 			v.command,
-			{ condition = tex.in_math }
+			{ condition = tex.in_mathzone }
 		)
 	)
 end
