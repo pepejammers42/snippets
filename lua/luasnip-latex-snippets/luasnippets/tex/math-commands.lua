@@ -97,6 +97,11 @@ M = {
 		{ t("^{-1}") },
 		{ condition = tex.in_math, show_condition = tex.in_math }
 	),
+	autosnippet(
+		{ trig = "dfa", wordTrig = false },
+		{ t("\\triangleq ") },
+		{ condition = tex.in_math, show_condition = tex.in_math }
+	),
 
 	-- fractions
 	autosnippet(
