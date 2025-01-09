@@ -409,7 +409,8 @@ local symbol_specs = {
 	ooo = { context = { name = "∞" }, command = [[\infty]] },
 	lll = { context = { name = "ℓ" }, command = [[\ell]] },
 	dag = { context = { name = "†" }, command = [[\dagger]] },
-	quad = { context = { name = "quad" }, command = [[quad]] },
+	quad = { context = { name = "quad" }, command = [[\quad]] },
+	nbla = { context = { name = "quad" }, command = [[\nabla]] },
 	["+-"] = { context = { name = "†" }, command = [[\pm]] },
 	["-+"] = { context = { name = "†" }, command = [[\mp]] },
 }
