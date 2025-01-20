@@ -50,6 +50,8 @@ end
 local has_treesitter, ts = pcall(require, "vim.treesitter")
 local _, query = pcall(require, "vim.treesitter.query")
 
+local M = {}
+
 local MATH_ENVIRONMENTS = {
 	displaymath = true,
 	equation = true,
@@ -59,10 +61,24 @@ local MATH_ENVIRONMENTS = {
 	array = true,
 	aligned = true,
 }
+
 local MATH_NODES = {
 	displayed_equation = true,
 	inline_formula = true,
 }
+
+-- Fallback helper
+local function get_node_text(node, bufnr)
+	-- If old function is available
+	if query and type(query.get_node_text) == "function" then
+		return query.get_node_text(node, bufnr)
+	-- If new function is available (Neovim ≥ 0.9)
+	elseif vim.treesitter.get_node_text then
+		return vim.treesitter.get_node_text(node, bufnr)
+	end
+	-- Otherwise, no function available
+	return nil
+end
 
 local function get_node_at_cursor()
 	local cursor = vim.api.nvim_win_get_cursor(0)
@@ -74,32 +90,34 @@ local function get_node_at_cursor()
 	end
 	local root_tree = parser:parse()[1]
 	local root = root_tree and root_tree:root()
-
 	if not root then
 		return
 	end
-
 	return root:named_descendant_for_range(cursor_range[1], cursor_range[2], cursor_range[1], cursor_range[2])
 end
 
 function M.in_mathzone()
-	if has_treesitter then
-		local buf = vim.api.nvim_get_current_buf()
-		local node = get_node_at_cursor()
-		while node do
-			if MATH_NODES[node:type()] then
-				return true
-			elseif node:type() == "math_environment" or node:type() == "generic_environment" then
-				local begin = node:child(0)
-				local names = begin and begin:field("name")
-				if names and names[1] and MATH_ENVIRONMENTS[query.get_node_text(names[1], buf):match("[A-Za-z]+")] then
+	if not has_treesitter then
+		return false
+	end
+	local buf = vim.api.nvim_get_current_buf()
+	local node = get_node_at_cursor()
+	while node do
+		if MATH_NODES[node:type()] then
+			return true
+		elseif node:type() == "math_environment" or node:type() == "generic_environment" then
+			local begin = node:child(0)
+			local names = begin and begin:field("name")
+			if names and names[1] then
+				local env_name = get_node_text(names[1], buf)
+				if env_name and MATH_ENVIRONMENTS[env_name:match("[A-Za-z]+")] then
 					return true
 				end
 			end
-			node = node:parent()
 		end
-		return false
+		node = node:parent()
 	end
+	return false
 end
 
 return M
