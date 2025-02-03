@@ -50,8 +50,6 @@ end
 local has_treesitter, ts = pcall(require, "vim.treesitter")
 local _, query = pcall(require, "vim.treesitter.query")
 
-local M = {}
-
 local MATH_ENVIRONMENTS = {
 	displaymath = true,
 	equation = true,
