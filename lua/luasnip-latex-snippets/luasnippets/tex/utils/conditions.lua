@@ -82,10 +82,18 @@ local function get_node_at_cursor()
 	local cursor = vim.api.nvim_win_get_cursor(0)
 	local cursor_range = { cursor[1] - 1, cursor[2] }
 	local buf = vim.api.nvim_get_current_buf()
-	local ok, parser = pcall(ts.get_parser, buf, "latex")
+
+	-- Get filetype
+	local filetype = vim.bo.filetype
+
+	-- Use appropriate parser based on filetype
+	local parser_lang = filetype == "markdown" and "markdown" or "latex"
+	local ok, parser = pcall(ts.get_parser, buf, parser_lang)
 	if not ok or not parser then
 		return
 	end
+
+	-- Rest of function remains the same
 	local root_tree = parser:parse()[1]
 	local root = root_tree and root_tree:root()
 	if not root then
