@@ -50,9 +50,6 @@ end
 local has_treesitter, ts = pcall(require, "vim.treesitter")
 local _, query = pcall(require, "vim.treesitter.query")
 
-local has_treesitter, ts = pcall(require, "vim.treesitter")
-local _, query = pcall(require, "vim.treesitter.query")
-
 local MATH_ENVIRONMENTS = {
 	displaymath = true,
 	equation = true,
@@ -185,25 +182,32 @@ function M.in_mathzone()
 			if node:type() == "inline" then
 				local text = get_node_text(node, buf)
 				local cursor_col = vim.api.nvim_win_get_cursor(0)[2]
-				local node_start = node:start()
-				local relative_col = cursor_col - node_start[2]
+
+				-- Get node start position safely
+				local row, col = node:start()
 
 				-- Simple checking for $ delimiters
 				if text then
+					-- Check if cursor is in a math region by parsing the text
 					local in_math = false
+					local pos = 0
 					local i = 1
+
 					while i <= #text do
 						if i < #text and text:sub(i, i + 1) == "$$" then
 							in_math = not in_math
 							i = i + 2
+							pos = pos + 2
 						elseif text:sub(i, i) == "$" then
 							in_math = not in_math
 							i = i + 1
+							pos = pos + 1
 						else
 							i = i + 1
+							pos = pos + 1
 						end
 
-						if i > relative_col + 1 then
+						if pos >= cursor_col - col then
 							return in_math
 						end
 					end
