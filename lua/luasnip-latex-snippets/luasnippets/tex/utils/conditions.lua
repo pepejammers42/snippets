@@ -63,15 +63,6 @@ local MATH_ENVIRONMENTS = {
 local MATH_NODES = {
 	displayed_equation = true,
 	inline_formula = true,
-	math_environment = true,
-}
-
--- Markdown-specific math node types
-local MARKDOWN_MATH_NODES = {
-	["math_inline"] = true,
-	["math_block"] = true,
-	["dollar_math"] = true,
-	["dollar_dollar_math"] = true,
 }
 
 -- Fallback helper
@@ -87,24 +78,29 @@ local function get_node_text(node, bufnr)
 	return nil
 end
 
-local function get_node_at_cursor()
+-- Original get_node_at_cursor for LaTeX
+local function get_latex_node_at_cursor()
 	local cursor = vim.api.nvim_win_get_cursor(0)
 	local cursor_range = { cursor[1] - 1, cursor[2] }
 	local buf = vim.api.nvim_get_current_buf()
-	local filetype = vim.bo.filetype
-
-	-- Determine which parser to use
-	local parser_lang
-	if filetype == "markdown" then
-		parser_lang = "markdown"
-	elseif filetype == "tex" or filetype == "latex" then
-		parser_lang = "latex"
-	else
-		-- For unsupported filetypes, return nil
-		return nil
+	local ok, parser = pcall(ts.get_parser, buf, "latex")
+	if not ok or not parser then
+		return
 	end
+	local root_tree = parser:parse()[1]
+	local root = root_tree and root_tree:root()
+	if not root then
+		return
+	end
+	return root:named_descendant_for_range(cursor_range[1], cursor_range[2], cursor_range[1], cursor_range[2])
+end
 
-	local ok, parser = pcall(ts.get_parser, buf, parser_lang)
+-- New function to get node for markdown
+local function get_markdown_node_at_cursor()
+	local cursor = vim.api.nvim_win_get_cursor(0)
+	local cursor_range = { cursor[1] - 1, cursor[2] }
+	local buf = vim.api.nvim_get_current_buf()
+	local ok, parser = pcall(ts.get_parser, buf, "markdown")
 	if not ok or not parser then
 		return nil
 	end
@@ -118,24 +114,23 @@ local function get_node_at_cursor()
 	return root:named_descendant_for_range(cursor_range[1], cursor_range[2], cursor_range[1], cursor_range[2])
 end
 
--- Fallback for markdown if treesitter doesn't work
+-- Fallback for markdown
 local function is_in_math_markdown_fallback()
 	local line = vim.api.nvim_get_current_line()
 	local col = vim.api.nvim_win_get_cursor(0)[2]
 
 	-- Check if we're inside a dollar sign pair
-	local in_single_dollars = false
-	local in_double_dollars = false
+	local in_math = false
 	local i = 1
 
 	while i <= #line do
 		-- Check for double dollars
 		if i < #line and line:sub(i, i + 1) == "$$" then
-			in_double_dollars = not in_double_dollars
+			in_math = not in_math
 			i = i + 2
 		-- Check for single dollars
 		elseif line:sub(i, i) == "$" then
-			in_single_dollars = not in_single_dollars
+			in_math = not in_math
 			i = i + 1
 		else
 			i = i + 1
@@ -146,96 +141,94 @@ local function is_in_math_markdown_fallback()
 		end
 	end
 
-	return in_single_dollars or in_double_dollars
+	return in_math
 end
 
-function M.in_mathzone()
+-- Check if in math zone in markdown
+local function in_mathzone_markdown()
 	if not has_treesitter then
-		-- Fallback for no treesitter
-		if vim.bo.filetype == "markdown" then
-			return is_in_math_markdown_fallback()
-		end
-		return false
+		return is_in_math_markdown_fallback()
 	end
 
-	local filetype = vim.bo.filetype
-	local buf = vim.api.nvim_get_current_buf()
-	local node = get_node_at_cursor()
-
-	-- If we couldn't get a node (parser failure, etc.)
+	local node = get_markdown_node_at_cursor()
 	if not node then
-		if filetype == "markdown" then
-			return is_in_math_markdown_fallback()
-		end
-		return false
+		return is_in_math_markdown_fallback()
 	end
 
-	-- Check if we're in a math node
+	-- Check node types that represent math in markdown
 	while node do
-		if filetype == "markdown" then
-			-- Check for markdown math nodes
-			if MARKDOWN_MATH_NODES[node:type()] then
-				return true
-			end
+		local node_type = node:type()
+		if
+			node_type == "math_inline"
+			or node_type == "math_block"
+			or node_type == "dollar_math"
+			or node_type == "dollar_dollar_math"
+		then
+			return true
+		end
 
-			-- Some parsers use generic "inline" nodes with $ delimiters
-			if node:type() == "inline" then
-				local text = get_node_text(node, buf)
-				local cursor_col = vim.api.nvim_win_get_cursor(0)[2]
+		-- If inline, check for math delimiters
+		if node_type == "inline" then
+			local buf = vim.api.nvim_get_current_buf()
+			local text = get_node_text(node, buf)
+			local cursor_col = vim.api.nvim_win_get_cursor(0)[2]
+			local srow, scol = node:start()
+			local relative_pos = cursor_col - scol
 
-				-- Get node start position safely
-				local row, col = node:start()
+			if text then
+				local in_math = false
+				local pos = 0
 
-				-- Simple checking for $ delimiters
-				if text then
-					-- Check if cursor is in a math region by parsing the text
-					local in_math = false
-					local pos = 0
-					local i = 1
+				for i = 1, #text do
+					if i < #text and text:sub(i, i + 1) == "$$" then
+						in_math = not in_math
+						i = i + 1
+					elseif text:sub(i, i) == "$" then
+						in_math = not in_math
+					end
 
-					while i <= #text do
-						if i < #text and text:sub(i, i + 1) == "$$" then
-							in_math = not in_math
-							i = i + 2
-							pos = pos + 2
-						elseif text:sub(i, i) == "$" then
-							in_math = not in_math
-							i = i + 1
-							pos = pos + 1
-						else
-							i = i + 1
-							pos = pos + 1
-						end
-
-						if pos >= cursor_col - col then
-							return in_math
-						end
+					if i >= relative_pos then
+						return in_math
 					end
 				end
 			end
-		else
-			-- LaTeX math node detection
-			if MATH_NODES[node:type()] then
-				return true
-			elseif node:type() == "math_environment" or node:type() == "generic_environment" then
-				local begin = node:child(0)
-				local names = begin and begin:field("name")
-				if names and names[1] then
-					local env_name = get_node_text(names[1], buf)
-					if env_name and MATH_ENVIRONMENTS[env_name:match("[A-Za-z]+")] then
-						return true
-					end
+		end
+
+		node = node:parent()
+	end
+
+	return is_in_math_markdown_fallback()
+end
+
+function M.in_mathzone()
+	local filetype = vim.bo.filetype
+
+	-- Handle markdown files separately
+	if filetype == "markdown" then
+		return in_mathzone_markdown()
+	end
+
+	-- Original implementation for LaTeX files
+	if not has_treesitter then
+		return false
+	end
+	local buf = vim.api.nvim_get_current_buf()
+	local node = get_latex_node_at_cursor()
+	while node do
+		if MATH_NODES[node:type()] then
+			return true
+		elseif node:type() == "math_environment" or node:type() == "generic_environment" then
+			local begin = node:child(0)
+			local names = begin and begin:field("name")
+			if names and names[1] then
+				local env_name = get_node_text(names[1], buf)
+				if env_name and MATH_ENVIRONMENTS[env_name:match("[A-Za-z]+")] then
+					return true
 				end
 			end
 		end
 		node = node:parent()
 	end
-
-	-- Final fallback for markdown
-	if filetype == "markdown" then
-		return is_in_math_markdown_fallback()
-	end
-
 	return false
 end
 
