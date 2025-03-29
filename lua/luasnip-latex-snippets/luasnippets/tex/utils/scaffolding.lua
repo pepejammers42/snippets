@@ -184,22 +184,29 @@ M.postfix_snippet = function(context, command, opts)
 	return postfix(context, {
 		f(function(_, parent)
 			local original_capture = parent.snippet.env.POSTFIX_MATCH
+			print("Original capture:", original_capture)
 
 			-- Check if original capture started with a backslash
 			local had_backslash = original_capture:match("^\\")
 			-- Clean the capture of any existing backslashes
 			local clean_capture = original_capture:gsub("^\\+", "")
-			print(clean_capture)
-			print(command.pre)
 
-			-- Create the result directly
+			print("Clean capture:", clean_capture)
+			print("Had backslash:", had_backslash)
+			print("command.pre:", command.pre)
+			print("command.post:", command.post)
+
+			local result
 			if had_backslash then
-				-- If original had backslash: \muhat -> \hat{\mu}
-				return [[command.pre]] .. [[\]] .. clean_capture .. command.post
+				-- If original had backslash: \sigmahat -> \hat{\sigma}
+				result = string.format("%s\\%s%s", command.pre, clean_capture, command.post)
 			else
 				-- If original had no backslash: muhat -> \hat{mu}
-				return command.pre .. clean_capture .. command.post
+				result = string.format("%s%s%s", command.pre, clean_capture, command.post)
 			end
+
+			print("Final result:", result)
+			return result
 		end),
 		i(0),
 	}, postfix_opts)
