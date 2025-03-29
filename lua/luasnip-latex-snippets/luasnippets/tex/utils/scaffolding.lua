@@ -33,45 +33,52 @@ local autosnippet = ls.extend_decorator.apply(s, { snippetType = "autosnippet" }
 M = {}
 
 local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2)
-	-- user_arg1 = command.pre (e.g., [[\hat{]])
-	-- user_arg2 = command.post (e.g., [[}]])
-	local capture = parent.snippet.env.POSTFIX_MATCH
+	local original_capture = parent.snippet.env.POSTFIX_MATCH
 	local visual_placeholder = parent.snippet.env.SELECT_RAW
-	-- <<<--- ADD THIS DEBUG LINE --->>>
+
+	-- Debugging (optional, but keep for now)
 	print(
 		"--- Postfix Debug ---",
-		"Capture:",
-		vim.inspect(capture),
+		"Original Capture:",
+		vim.inspect(original_capture),
 		"Pre:",
 		vim.inspect(user_arg1),
 		"Post:",
 		vim.inspect(user_arg2)
 	)
-	-- <<<------------------------>>>
-	if #capture > 0 then
-		-- We have a postfix match (e.g., "x" or "\mu")
-		-- Construct node: <pre><capture><post><cursor>
+
+	local final_capture = original_capture -- Start with the received capture
+
+	-- <<<--- WORKAROUND: Check if capture looks like a command name --->>>
+	-- If the capture consists ONLY of letters (and is not empty),
+	-- assume it was a \command where the \ got stripped.
+	if #original_capture > 0 and original_capture:match("^[a-zA-Z]+$") then
+		print("--- Postfix Debug --- Applying backslash workaround")
+		final_capture = "\\" .. original_capture -- Prepend the backslash
+	end
+	-- <<<------------------------------------------------------------->>>
+
+	if #final_capture > 0 then
+		-- Use the potentially modified final_capture
 		return sn(nil, {
 			t(user_arg1), -- e.g., \hat{
-			t(capture), -- e.g., \mu or x
+			t(final_capture), -- e.g., \mu or x
 			t(user_arg2), -- e.g., }
 			i(0), -- Final cursor position
 		})
 	elseif #visual_placeholder > 0 then
-		-- We have a visual selection
-		-- Construct node: <pre><visual_selection><post><cursor>
+		-- Visual selection doesn't need the workaround
 		return sn(nil, {
 			t(user_arg1),
-			i(1, visual_placeholder), -- Insert node with selected text
+			i(1, visual_placeholder),
 			t(user_arg2),
 			i(0),
 		})
 	else
-		-- No postfix match and no visual selection
-		-- Construct node: <pre><placeholder><post><cursor>
+		-- Fallback
 		return sn(nil, {
 			t(user_arg1),
-			i(1, ""), -- Empty insert node
+			i(1, ""),
 			t(user_arg2),
 			i(0),
 		})
@@ -179,7 +186,7 @@ M.postfix_snippet = function(context, command, opts)
 	-- 1. A LaTeX command: A backslash followed by one or more letters (\%a+)
 	-- 2. OR: One or more characters that are NOT backslash or whitespace ([^\\%s]+)
 	-- Both must occur immediately before the trigger ($)
-	local match_pattern = "(\\\\[a-zA-Z]+)$"
+	local match_pattern = "(\\[a-zA-Z]+)$|([^\\%s]+)$"
 
 	local postfix_opts = vim.tbl_deep_extend("force", {
 		match_pattern = match_pattern,
