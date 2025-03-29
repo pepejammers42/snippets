@@ -92,29 +92,6 @@ local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2
 	end
 end
 
--- Ensure M.postfix_snippet is still using the combined pattern
--- and calling this generate_postfix_dynamicnode function.
-M.postfix_snippet = function(context, command, opts)
-	opts = opts or {}
-	if not context.trig then
-		error("context doesn't include a `trig` key which is mandatory", 2)
-	end
-	context.dscr = context.dscr or (command.pre .. "{...}" .. command.post)
-	context.name = context.name or context.trig
-	context.docstring = context.docstring or (command.pre .. "(matched_text)" .. command.post)
-
-	local match_pattern = "(\\[a-zA-Z]+)$|([^\\%s]+)$" -- Combined pattern
-
-	local postfix_opts = vim.tbl_deep_extend("force", {
-		match_pattern = match_pattern,
-		replace_pattern = "^", -- Replace from start
-	}, opts)
-
-	return postfix(context, {
-		d(1, generate_postfix_dynamicnode, {}, { user_args = { command.pre, command.post } }),
-	}, postfix_opts)
-end
-
 -- visual util to add insert node - thanks ejmastnak!
 M.get_visual = function(args, parent)
 	if #parent.snippet.env.SELECT_RAW > 0 then
