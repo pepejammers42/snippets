@@ -195,7 +195,7 @@ M.postfix_snippet = function(context, command, opts)
 			-- Create the result directly
 			if had_backslash then
 				-- If original had backslash: \muhat -> \hat{\mu}
-				return command.pre .. "\\" .. clean_capture .. command.post
+				return [[command.pre]] .. [[\]] .. clean_capture .. command.post
 			else
 				-- If original had no backslash: muhat -> \hat{mu}
 				return command.pre .. clean_capture .. command.post
