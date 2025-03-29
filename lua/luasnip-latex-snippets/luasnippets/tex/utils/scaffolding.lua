@@ -33,21 +33,20 @@ local autosnippet = ls.extend_decorator.apply(s, { snippetType = "autosnippet" }
 M = {}
 
 local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2)
-	print("user_arg1:", vim.inspect(user_arg1))
-	print("user_arg2:", vim.inspect(user_arg2))
 	local original_capture = parent.snippet.env.POSTFIX_MATCH
 	local visual_placeholder = parent.snippet.env.SELECT_RAW
 
-	-- Clean the capture and add backslash if needed
+	-- Clean the capture of any existing backslashes
 	local clean_capture = original_capture:gsub("^\\+", "")
-	local final_capture = clean_capture:match("^[a-zA-Z]+$") and "\\" .. clean_capture or clean_capture
+
+	-- For single letters or regular text, we want to add the backslash AFTER
+	local final_capture = clean_capture:match("^[a-zA-Z]+$") and clean_capture or clean_capture
 
 	if #final_capture > 0 then
-		-- Instead of parsing, use direct text nodes
 		return sn(nil, {
-			t(user_arg1), -- command.pre (e.g., "\hat{")
-			t(final_capture),
-			t(user_arg2), -- command.post (e.g., "}")
+			t(user_arg1), -- \hat{
+			t(final_capture:match("^[a-zA-Z]$") and final_capture or "\\" .. final_capture),
+			t(user_arg2), -- }
 			i(0),
 		})
 	elseif #visual_placeholder > 0 then
