@@ -36,7 +36,7 @@ local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2
 	local original_capture = parent.snippet.env.POSTFIX_MATCH
 	local visual_placeholder = parent.snippet.env.SELECT_RAW
 
-	-- Debugging (optional, but keep for now)
+	-- Debugging (optional)
 	print(
 		"--- Postfix Debug ---",
 		"Original Capture:",
@@ -47,29 +47,33 @@ local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2
 		vim.inspect(user_arg2)
 	)
 
-	local final_capture = original_capture -- Start with the received capture
+	local final_capture = original_capture
 
-	-- <<<--- WORKAROUND: Check if capture looks like a command name --->>>
-	-- If the capture consists ONLY of letters (and is not empty),
-	-- assume it was a \command where the \ got stripped.
+	-- <<<--- KEEP THIS WORKAROUND --->>>
 	if #original_capture > 0 and original_capture:match("^[a-zA-Z]+$") then
 		print("--- Postfix Debug --- Applying backslash workaround")
-		final_capture = "\\" .. original_capture -- Prepend the backslash
+		final_capture = "\\" .. original_capture
 	end
-	-- <<<------------------------------------------------------------->>>
+	-- <<<-------------------------->>>
+
+	-- <<<--- Create a function node for the prefix --->>>
+	local prefix_node = f(function()
+		return user_arg1 -- Return the raw prefix string (e.g., [[\hat{]])
+	end, {})
+	-- <<<------------------------------------------>>>
 
 	if #final_capture > 0 then
-		-- Use the potentially modified final_capture
+		-- Use f() for prefix, t() for the rest
 		return sn(nil, {
-			t(user_arg1), -- e.g., \hat{
-			t(final_capture), -- e.g., \mu or x
-			t(user_arg2), -- e.g., }
+			prefix_node, -- Use the function node here
+			t(final_capture), -- Use text node for corrected capture
+			t(user_arg2), -- Use text node for postfix
 			i(0), -- Final cursor position
 		})
 	elseif #visual_placeholder > 0 then
-		-- Visual selection doesn't need the workaround
+		-- Visual selection
 		return sn(nil, {
-			t(user_arg1),
+			prefix_node, -- Use the function node here
 			i(1, visual_placeholder),
 			t(user_arg2),
 			i(0),
@@ -77,7 +81,7 @@ local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2
 	else
 		-- Fallback
 		return sn(nil, {
-			t(user_arg1),
+			prefix_node, -- Use the function node here
 			i(1, ""),
 			t(user_arg2),
 			i(0),
