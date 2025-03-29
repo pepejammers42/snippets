@@ -591,16 +591,33 @@ local postfix_math_specs = {
 	},
 }
 
+local function postfix_snippet_new(context, command, opts)
+	local pattern = context.pattern or [=[\([^%s{}\\]+\|\\[^%s{}]+\)]=] .. context.trig .. "$"
+	return ls.s(
+		vim.tbl_extend("force", {
+			trig = pattern,
+			trigEngine = "pattern",
+		}, context),
+		ls.fmta(command.pre .. "<>" .. command.post, {
+			f(function(_, parent)
+				local match = parent.trigger:match(pattern)
+				-- Remove the trigger word from the end
+				local content = match:sub(1, -(#context.trig + 1))
+				return content
+			end),
+		}),
+		opts
+	)
+end
+
 local postfix_math_snippets = {}
 for k, v in pairs(postfix_math_specs) do
 	table.insert(
 		postfix_math_snippets,
-		postfix_snippet(
+		postfix_snippet_new(
 			vim.tbl_deep_extend("keep", {
 				trig = k,
 				snippetType = "autosnippet",
-				trigEngine = "pattern",
-				pattern = [=[\([^%s{}\\]+\|\\[^%s{}]+\)]=] .. k .. "$",
 			}, v.context),
 			v.command,
 			{ condition = tex.in_math }
