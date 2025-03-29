@@ -179,7 +179,7 @@ M.postfix_snippet = function(context, command, opts)
 	-- 1. A LaTeX command: A backslash followed by one or more letters (\%a+)
 	-- 2. OR: One or more characters that are NOT backslash or whitespace ([^\\%s]+)
 	-- Both must occur immediately before the trigger ($)
-	local match_pattern = "(\\[a-zA-Z]+)$"
+	local match_pattern = "(\\\\[a-zA-Z]+)$"
 
 	local postfix_opts = vim.tbl_deep_extend("force", {
 		match_pattern = match_pattern,
