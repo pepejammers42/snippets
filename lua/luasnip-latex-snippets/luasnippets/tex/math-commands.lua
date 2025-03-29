@@ -591,33 +591,17 @@ local postfix_math_specs = {
 	},
 }
 
-local function tex_post_snip(context, command, opts)
-	local trigger = context.trig
-
-	opts = opts or {}
-	context.trigEngine = context.trigEngine or "ecma"
-
-	local snippet = s(context, {
-		d(1, function(_, parent)
-			local text_before = parent.env.POSTFIX_MATCH or ""
-			return sn(nil, {
-				t(command.pre .. text_before .. command.post),
-			})
-		end),
-	}, opts)
-
-	snippet.regTrig = true
-	snippet.pattern = "(\\%a+|[^\\%s%(%[{,])%" .. trigger .. "$"
-
-	return snippet
-end
-
 local postfix_math_snippets = {}
 for k, v in pairs(postfix_math_specs) do
 	table.insert(
 		postfix_math_snippets,
-		tex_post_snip(
-			vim.tbl_deep_extend("keep", { trig = k, snippetType = "autosnippet" }, v.context),
+		postfix_snippet(
+			vim.tbl_deep_extend("keep", {
+				trig = k,
+				snippetType = "autosnippet",
+				trigEngine = "pattern",
+				pattern = [=[\([^%s{}\\]+\|\\[^%s{}]+\)]=] .. k .. "$",
+			}, v.context),
 			v.command,
 			{ condition = tex.in_math }
 		)
