@@ -182,7 +182,24 @@ M.postfix_snippet = function(context, command, opts)
 	}, opts)
 
 	return postfix(context, {
-		d(1, generate_postfix_dynamicnode, {}, { user_args = { command.pre, command.post } }),
+		f(function(_, parent)
+			local original_capture = parent.snippet.env.POSTFIX_MATCH
+
+			-- Check if original capture started with a backslash
+			local had_backslash = original_capture:match("^\\")
+			-- Clean the capture of any existing backslashes
+			local clean_capture = original_capture:gsub("^\\+", "")
+
+			-- Create the result directly
+			if had_backslash then
+				-- If original had backslash: \muhat -> \hat{\mu}
+				return command.pre .. "\\" .. clean_capture .. command.post
+			else
+				-- If original had no backslash: muhat -> \hat{mu}
+				return command.pre .. clean_capture .. command.post
+			end
+		end),
+		i(0),
 	}, postfix_opts)
 end
 
