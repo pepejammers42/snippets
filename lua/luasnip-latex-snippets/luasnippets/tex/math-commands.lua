@@ -544,32 +544,36 @@ local postfix_math_specs = {
 
 local postfix_math_snippets = {}
 for k, v in pairs(postfix_math_specs) do
-	table.insert(
-		postfix_math_snippets, -- Add to your list
-		s(
-			{
-				trig = "(\\?)([a-zA-Z]+)hat", -- Regex trigger
-				regTrig = true,
-				snippetType = "autosnippet",
-				dscr = "Postfix hat (regex trigger)",
-				priority = 1100, -- Higher priority maybe needed
-			},
-			f(function(args, snip)
-				local leading_backslash = args[1][1] -- Captured group 1 (\ or empty)
-				local text = args[1][2] -- Captured group 2 (e.g., "mu" or "sigma")
+	local postfix_math_snippets = {}
+	for k, v in pairs(postfix_math_specs) do
+		table.insert(
+			postfix_math_snippets, -- Add to your list
+			s(
+				{
+					trig = "(\\?)([a-zA-Z]+)hat", -- Regex trigger
+					regTrig = true,
+					snippetType = "autosnippet",
+					dscr = "Postfix hat (regex trigger)",
+					priority = 1100, -- Higher priority maybe needed
+				},
+				f(function(args, snip)
+					local leading_backslash = args[1][1] -- Captured group 1 (\ or empty)
+					local text = args[1][2] -- Captured group 2 (e.g., "mu" or "sigma")
 
-				if leading_backslash == "\\" then
-					-- Input was \sigmahat -> output \hat{\sigma}
-					return "\\hat{\\" .. text .. "}"
-				else
-					-- Input was muhat -> output \hat{mu}
-					return "\\hat{" .. text .. "}" -- Always add braces for simplicity now? Or keep \hat{mu}? Let's keep \hat{mu
-					-- return "\\hat" .. text
-				end
-			end),
-			{ condition = tex.in_math } -- Keep condition
+					if leading_backslash == "\\" then
+						-- Input was \sigmahat -> output \hat{\sigma}
+						return "\\hat{\\" .. text .. "}"
+					else
+						-- Input was muhat -> output \hat{mu}
+						return "\\hat{" .. text .. "}" -- Always add braces for simplicity now? Or keep \hat{mu}? Let's keep \hat{mu
+						-- return "\\hat" .. text
+					end
+				end),
+				{ condition = tex.in_math } -- Keep condition
+			)
 		)
-	)
+	end
+	vim.list_extend(M, postfix_math_snippets)
 end
 vim.list_extend(M, postfix_math_snippets)
 
