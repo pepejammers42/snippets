@@ -542,40 +542,18 @@ local postfix_math_specs = {
 	},
 }
 
-local create_math_postfix_snippet = function(trig, name, description, command)
-	-- Create a pattern that matches both "muhat" and "\muhat"
-	local pattern = "([\\]?)([a-zA-Z]+)" .. trig .. "$"
-
-	return autosnippet(
-		{
-			trig = pattern,
-			name = name,
-			dscr = description,
-			trigEngine = "ecma",
-			regTrig = true,
-			hidden = true,
-		},
-		f(function(_, snip)
-			local has_backslash = snip.captures[1] == "\\"
-			local base_text = snip.captures[2]
-
-			if has_backslash then
-				-- Case: \muhat -> \hat{\mu}
-				return command.pre .. "\\" .. base_text .. command.post
-			else
-				-- Case: muhat -> \hat{mu}
-				return command.pre .. base_text .. command.post
-			end
-		end)
-	)
-end
-
--- Create snippets for each math postfix
 local postfix_math_snippets = {}
 for k, v in pairs(postfix_math_specs) do
 	table.insert(
 		postfix_math_snippets,
-		create_math_postfix_snippet(k, v.context.name or k, v.context.dscr or k, v.command)
+		postfix_snippet(
+			vim.tbl_deep_extend("keep", {
+				trig = k,
+				snippetType = "autosnippet",
+			}, v.context),
+			v.command,
+			{ condition = tex.in_math }
+		)
 	)
 end
 vim.list_extend(M, postfix_math_snippets)

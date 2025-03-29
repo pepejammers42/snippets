@@ -174,41 +174,44 @@ M.postfix_snippet = function(context, command, opts)
 	context.name = context.name or context.trig
 	context.docstring = context.docstring or (command.pre .. "(matched_text)" .. command.post)
 
+	-- Match optional backslash followed by one or more letters right before the trigger
 	local match_pattern = "\\?[a-zA-Z]+$"
+	-- Tell postfix to replace the text matched by match_pattern
+	local replace_pattern = match_pattern
 
 	local postfix_opts = vim.tbl_deep_extend("force", {
 		match_pattern = match_pattern,
-		replace_pattern = "^",
+		replace_pattern = replace_pattern, -- Use match_pattern to replace the matched part
 	}, opts)
 
 	return postfix(context, {
 		f(function(_, parent)
 			local original_capture = parent.snippet.env.POSTFIX_MATCH
-			print("Original capture:", original_capture)
+			-- Access command.pre and command.post from the closure
+			local prefix = command.pre
+			local suffix = command.post
 
 			-- Check if original capture started with a backslash
 			local had_backslash = original_capture:match("^\\")
 			-- Clean the capture of any existing backslashes
 			local clean_capture = original_capture:gsub("^\\+", "")
 
-			print("Clean capture:", clean_capture)
-			print("Had backslash:", had_backslash)
-			print("command.pre:", command.pre)
-			print("command.post:", command.post)
-
-			local result
+			-- Construct the result string
+			local result_text
 			if had_backslash then
 				-- If original had backslash: \sigmahat -> \hat{\sigma}
-				result = string.format("%s\\%s%s", command.pre, clean_capture, command.post)
+				-- We need to add the backslash back before the cleaned capture
+				result_text = prefix .. "\\" .. clean_capture .. suffix
 			else
 				-- If original had no backslash: muhat -> \hat{mu}
-				result = string.format("%s%s%s", command.pre, clean_capture, command.post)
+				-- Use the cleaned capture directly
+				result_text = prefix .. clean_capture .. suffix
 			end
 
-			print("Final result:", result)
-			return result
+			-- Return a text node with the correctly constructed string
+			return t(result_text)
 		end),
-		i(0),
+		i(0), -- Place cursor at the end
 	}, postfix_opts)
 end
 
