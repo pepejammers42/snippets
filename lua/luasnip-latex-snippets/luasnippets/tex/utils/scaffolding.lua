@@ -37,7 +37,6 @@ local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2
 	local visual_placeholder = parent.snippet.env.SELECT_RAW
 
 	print("Original capture:", vim.inspect(original_capture))
-	print("user_arg1:", vim.inspect(user_arg1))
 
 	if #original_capture > 0 then
 		-- Check if original capture started with a backslash
@@ -45,14 +44,14 @@ local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2
 		-- Clean the capture of any existing backslashes
 		local clean_capture = original_capture:gsub("^\\+", "")
 
-		-- Create the snippet directly as a string
+		-- Create the result directly with raw strings
 		local result
 		if had_backslash then
 			-- If original had backslash: \muhat -> \hat{\mu}
-			result = "\\hat{\\" .. clean_capture .. "}"
+			result = [[\hat{\]] .. clean_capture .. [[}]]
 		else
 			-- If original had no backslash: muhat -> \hat{mu}
-			result = "\\hat{" .. clean_capture .. "}"
+			result = [[\hat{]] .. clean_capture .. [[}]]
 		end
 
 		print("Result:", vim.inspect(result))
@@ -62,17 +61,17 @@ local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2
 	elseif #visual_placeholder > 0 then
 		-- Handle visual selection case
 		return sn(nil, {
-			t("\\hat{"),
+			t([[\hat{]]),
 			i(1, visual_placeholder),
-			t("}"),
+			t([[}]]),
 			i(0),
 		})
 	else
 		-- Handle empty case
 		return sn(nil, {
-			t("\\hat{"),
+			t([[\hat{]]),
 			i(1),
-			t("}"),
+			t([[}]]),
 			i(0),
 		})
 	end
