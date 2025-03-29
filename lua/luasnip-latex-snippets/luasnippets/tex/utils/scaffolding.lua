@@ -41,7 +41,11 @@ local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2
 
 	-- <<<--- KEEP THIS WORKAROUND for capture --->>>
 	if #original_capture > 0 and original_capture:match("^[a-zA-Z]+$") then
+		-- Only add backslash if it doesn't already start with one
 		final_capture = "\\" .. original_capture
+	elseif #original_capture > 0 and original_capture:match("^\\") then
+		-- If it already starts with a backslash, use it as is
+		final_capture = original_capture
 	end
 	-- <<<-------------------------------------->>>
 

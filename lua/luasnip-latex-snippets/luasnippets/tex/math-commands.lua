@@ -526,7 +526,7 @@ local postfix_math_specs = {
 	},
 	hat = {
 		context = { name = "hat", dscr = "hat" },
-		command = { pre = [[\\hat{]], post = [[}]] },
+		command = { pre = [[\hat{]], post = [[}]] },
 	},
 	dot = {
 		context = { name = "dot", dscr = "dot" },
