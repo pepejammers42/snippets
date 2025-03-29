@@ -174,8 +174,8 @@ M.postfix_snippet = function(context, command, opts)
 	context.name = context.name or context.trig
 	context.docstring = context.docstring or (command.pre .. "(matched_text)" .. command.post)
 
-	local match_pattern = "\\?[a-zA-Z]+$"
-	local replace_pattern = match_pattern
+	local match_pattern = "[a-zA-Z]+$" -- REMOVED optional backslash
+	local replace_pattern = "[a-zA-Z]+$" -- Match the simpler pattern
 
 	local postfix_opts = vim.tbl_deep_extend("force", {
 		match_pattern = match_pattern,
