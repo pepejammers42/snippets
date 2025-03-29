@@ -42,8 +42,8 @@ local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2
 	if #clean_capture > 0 then
 		return sn(nil, {
 			t(user_arg1), -- \hat{
-			-- Always add backslash for the captured text
-			t("\\" .. clean_capture),
+			-- For single letters, don't add backslash; for longer text (like 'mu'), add backslash
+			t(clean_capture:match("^[a-zA-Z]$") and clean_capture or "\\" .. clean_capture),
 			t(user_arg2), -- }
 			i(0),
 		})
