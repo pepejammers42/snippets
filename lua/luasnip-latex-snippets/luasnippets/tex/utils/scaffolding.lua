@@ -39,13 +39,11 @@ local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2
 	-- Clean the capture of any existing backslashes
 	local clean_capture = original_capture:gsub("^\\+", "")
 
-	-- For single letters or regular text, we want to add the backslash AFTER
-	local final_capture = clean_capture:match("^[a-zA-Z]+$") and clean_capture or clean_capture
-
-	if #final_capture > 0 then
+	if #clean_capture > 0 then
 		return sn(nil, {
 			t(user_arg1), -- \hat{
-			t(final_capture:match("^[a-zA-Z]$") and final_capture or "\\" .. final_capture),
+			-- Always add backslash for the captured text
+			t("\\" .. clean_capture),
 			t(user_arg2), -- }
 			i(0),
 		})
