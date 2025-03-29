@@ -36,6 +36,8 @@ local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2
 	local original_capture = parent.snippet.env.POSTFIX_MATCH
 	local visual_placeholder = parent.snippet.env.SELECT_RAW
 
+	-- Check if original capture started with a backslash
+	local had_backslash = original_capture:match("^\\")
 	-- Clean the capture of any existing backslashes
 	local clean_capture = original_capture:gsub("^\\+", "")
 
@@ -44,10 +46,10 @@ local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2
 		local clean_pre = user_arg1:gsub("^\\", "")
 
 		return sn(nil, {
-			t("\\"), -- Always start with one backslash
+			t("\\"), -- Always start with one backslash for the command
 			t(clean_pre), -- The command name without backslash
-			-- Just use the clean capture directly - no extra backslash needed
-			t(clean_capture),
+			-- Add backslash to capture only if it originally had one
+			t(had_backslash and "\\" .. clean_capture or clean_capture),
 			t(user_arg2),
 			i(0),
 		})
