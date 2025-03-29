@@ -592,22 +592,25 @@ local postfix_math_specs = {
 }
 
 local function postfix_snippet_new(context, command, opts)
-	local pattern = context.pattern or [=[\([^%s{}\\]+\|\\[^%s{}]+\)]=] .. context.trig .. "$"
-	return ls.s(
-		vim.tbl_extend("force", {
-			trig = pattern,
-			trigEngine = "pattern",
-		}, context),
-		ls.fmta(command.pre .. "<>" .. command.post, {
-			f(function(_, parent)
-				local match = parent.trigger:match(pattern)
-				-- Remove the trigger word from the end
-				local content = match:sub(1, -(#context.trig + 1))
-				return content
-			end),
-		}),
-		opts
-	)
+	context.wordTrig = false
+	return ls.s(context, {
+		ls.d(1, function(args, parent)
+			local matched = parent.snippet.trigger:match("(.-)%" .. context.trig .. "$")
+			if matched:find("^\\") then
+				return ls.sn(nil, {
+					ls.t(command.pre),
+					ls.t(matched),
+					ls.t(command.post),
+				})
+			else
+				return ls.sn(nil, {
+					ls.t(command.pre),
+					ls.t(matched),
+					ls.t(command.post),
+				})
+			end
+		end),
+	}, opts)
 end
 
 local postfix_math_snippets = {}
