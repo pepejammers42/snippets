@@ -510,35 +510,35 @@ vim.list_extend(M, single_command_math_snippets)
 local postfix_math_specs = {
 	mbb = {
 		context = { name = "mathbb", dscr = "math blackboard bold" },
-		command = { pre = [[\mathbb{]], post = [[}]] },
+		command = { pre = "mathbb{", post = "}" },
 	},
 	mcal = {
 		context = { name = "mathcal", dscr = "math calligraphic" },
-		command = { pre = [[\mathcal{]], post = [[}]] },
+		command = { pre = "mathcal{", post = "}" },
 	},
 	mscr = {
 		context = { name = "mathscr", dscr = "math script" },
-		command = { pre = [[\mathscr{]], post = [[}]] },
+		command = { pre = "mathscr{", post = "}" },
 	},
 	mfr = {
 		context = { name = "mathfrak", dscr = "mathfrak" },
-		command = { pre = [[\mathfrak{]], post = [[}]] },
+		command = { pre = "mathfrak{", post = "}" },
 	},
 	hat = {
 		context = { name = "hat", dscr = "hat" },
-		command = { pre = [[\hat{]], post = [[}]] },
+		command = { pre = "hat{", post = "}" },
 	},
 	dot = {
 		context = { name = "dot", dscr = "dot" },
-		command = { pre = [[\dot{]], post = [[}]] },
+		command = { pre = "dot{", post = "}" },
 	},
 	bar = {
 		context = { name = "bar", dscr = "bar (overline)" },
-		command = { pre = [[\overline{]], post = [[}]] },
+		command = { pre = "overline{", post = "}" },
 	},
 	tld = {
 		context = { name = "tilde", priority = 500, dscr = "tilde" },
-		command = { pre = [[\tilde{]], post = [[}]] },
+		command = { pre = "\tilde{", post = "}" },
 	},
 }
 
