@@ -48,6 +48,9 @@ local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2
 		final_capture = original_capture
 	end
 	-- <<<-------------------------------------->>>
+	--
+	print("Original capture:", vim.inspect(original_capture))
+	print("Final capture:", vim.inspect(final_capture))
 
 	local snippet_string
 	local body_nodes
