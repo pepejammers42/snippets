@@ -509,85 +509,36 @@ vim.list_extend(M, single_command_math_snippets)
 
 local postfix_math_specs = {
 	mbb = {
-		context = {
-			name = "mathbb",
-			dscr = "math blackboard bold",
-		},
-		command = {
-			pre = [[\mathbb{]],
-			post = [[}]],
-		},
+		context = { name = "mathbb", dscr = "math blackboard bold" },
+		command = { pre = "\\mathbb{", post = "}" }, -- Use standard escape
 	},
 	mcal = {
-		context = {
-			name = "mathcal",
-			dscr = "math calligraphic",
-		},
-		command = {
-			pre = [[\mathcal{]],
-			post = [[}]],
-		},
+		context = { name = "mathcal", dscr = "math calligraphic" },
+		command = { pre = "\\mathcal{", post = "}" }, -- Use standard escape
 	},
 	mscr = {
-		context = {
-			name = "mathscr",
-			dscr = "math script",
-		},
-		command = {
-			pre = [[\mathscr{]],
-			post = [[}]],
-		},
+		context = { name = "mathscr", dscr = "math script" },
+		command = { pre = "\\mathscr{", post = "}" }, -- Use standard escape
 	},
 	mfr = {
-		context = {
-			name = "mathfrak",
-			dscr = "mathfrak",
-		},
-		command = {
-			pre = [[\mathfrak{]],
-			post = [[}]],
-		},
+		context = { name = "mathfrak", dscr = "mathfrak" },
+		command = { pre = "\\mathfrak{", post = "}" }, -- Use standard escape
 	},
 	hat = {
-		context = {
-			name = "hat",
-			dscr = "hat",
-		},
-		command = {
-			pre = [[\hat{]],
-			post = [[}]],
-		},
+		context = { name = "hat", dscr = "hat" },
+		command = { pre = "\\hat{", post = "}" }, -- Use standard escape
 	},
 	dot = {
-		context = {
-			name = "dot",
-			dscr = "dot",
-		},
-		command = {
-			pre = [[\dot{]],
-			post = [[}]],
-		},
+		context = { name = "dot", dscr = "dot" },
+		command = { pre = "\\dot{", post = "}" }, -- Use standard escape
 	},
 	bar = {
-		context = {
-			name = "bar",
-			dscr = "bar (overline)",
-		},
-		command = {
-			pre = [[\overline{]],
-			post = [[}]],
-		},
+		context = { name = "bar", dscr = "bar (overline)" },
+		command = { pre = "\\overline{", post = "}" }, -- Use standard escape
 	},
 	tld = {
-		context = {
-			name = "tilde",
-			priority = 500,
-			dscr = "tilde",
-		},
-		command = {
-			pre = [[\tilde{]],
-			post = [[}]],
-		},
+		context = { name = "tilde", priority = 500, dscr = "tilde" },
+		command = { pre = "\\tilde{", post = "}" }, -- Use standard escape
 	},
 }
 
