@@ -35,37 +35,25 @@ M = {}
 local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2)
 	local original_capture = parent.snippet.env.POSTFIX_MATCH
 	local visual_placeholder = parent.snippet.env.SELECT_RAW
-	-- local context_snippet = parent.snippet -- No longer needed here
 
-	local final_capture = original_capture
+	-- Remove any existing backslashes from the capture
+	local clean_capture = original_capture:gsub("^\\+", "")
 
-	-- <<<--- UPDATED WORKAROUND for capture --->>>
-	if #original_capture > 0 and original_capture:match("^[a-zA-Z]+$") then
-		-- Use single backslash in the string - it will be properly escaped when parsed
-		final_capture = string.format("\\%s", original_capture)
-	elseif #original_capture > 0 and original_capture:match("^\\") then
-		final_capture = original_capture
-	end
-	-- <<<-------------------------------------->>>
+	-- Add a single backslash if it's a plain text capture
+	local final_capture = clean_capture:match("^[a-zA-Z]+$") and "\\" .. clean_capture or clean_capture
 
 	local snippet_string
 	local body_nodes
 
 	if #final_capture > 0 then
-		-- Construct the target snippet string
 		snippet_string = user_arg1 .. final_capture .. user_arg2 .. "$0"
 		print("--- Postfix Debug --- Snippet String:", snippet_string)
 		print("--- Postfix Debug --- Original capture:", original_capture)
 		print("--- Postfix Debug --- Final capture:", final_capture)
-		-- <<<--- Parse WITHOUT context snippet --->>>
-		body_nodes = parse(nil, snippet_string)
-		-- <<<------------------------------------>>>
 
-		-- Wrap the parsed nodes in a snippetNode
+		body_nodes = parse(nil, snippet_string)
 		return sn(nil, body_nodes)
 	elseif #visual_placeholder > 0 then
-		-- Keep the working node approach for visual selection
-		print("--- Postfix Debug --- Using node approach for visual selection")
 		return sn(nil, {
 			f(function()
 				return user_arg1
@@ -74,15 +62,8 @@ local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2
 			t(user_arg2),
 		})
 	else
-		-- Fallback: Construct string and parse
 		snippet_string = user_arg1 .. "$1" .. user_arg2 .. "$0"
-		print("--- Postfix Debug --- Parsing Fallback Snippet String:", vim.inspect(snippet_string))
-
-		-- <<<--- Parse WITHOUT context snippet --->>>
 		body_nodes = parse(nil, snippet_string)
-		-- <<<------------------------------------>>>
-
-		-- Wrap the parsed nodes in a snippetNode
 		return sn(nil, body_nodes)
 	end
 end
@@ -180,25 +161,23 @@ M.postfix_snippet = function(context, command, opts)
 	if not context.trig then
 		error("context doesn't include a `trig` key which is mandatory", 2)
 	end
-	context.dscr = context.dscr or (command.pre .. "{...}" .. command.post) -- Improved description
+	context.dscr = context.dscr or (command.pre .. "{...}" .. command.post)
 	context.name = context.name or context.trig
 	context.docstring = context.docstring or (command.pre .. "(matched_text)" .. command.post)
 
-	-- This pattern tries to match:
-	-- 1. A LaTeX command: A backslash followed by one or more letters (\%a+)
-	-- 2. OR: One or more characters that are NOT backslash or whitespace ([^\\%s]+)
-	-- Both must occur immediately before the trigger ($)
-	local match_pattern = "(\\[a-zA-Z]+)$|([^\\%s]+)$"
+	-- Updated pattern to explicitly handle backslash commands
+	local match_pattern = "\\?[a-zA-Z]+$"
 
 	local postfix_opts = vim.tbl_deep_extend("force", {
 		match_pattern = match_pattern,
-		-- Ensure trigger is removed. 'end' refers to the end of the match + trigger.
-		replace_pattern = "^", -- Replace from the start of the match
+		replace_pattern = "^",
 	}, opts)
 
+	-- Strip any leading backslash from the command.pre
+	local cleaned_pre = command.pre:gsub("^\\+", "\\")
+
 	return postfix(context, {
-		-- Use the dynamic node generator defined above
-		d(1, generate_postfix_dynamicnode, {}, { user_args = { command.pre, command.post } }),
+		d(1, generate_postfix_dynamicnode, {}, { user_args = { cleaned_pre, command.post } }),
 	}, postfix_opts)
 end
 
