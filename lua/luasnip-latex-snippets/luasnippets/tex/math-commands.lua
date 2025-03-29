@@ -142,6 +142,13 @@ M = {
 		),
 		{ condition = tex.in_math, show_condition = tex.in_math }
 	),
+
+	autosnippet(
+		{ trig = "hat", name = "hat", dscr = "hat" },
+		fmta([[\hat{<>}<>]], { i(1), i(0) }),
+		{ condition = tex.in_math }
+	),
+
 	autosnippet(
 		{ trig = "uset", name = "underset", dscr = "underset (general)" },
 		fmta(

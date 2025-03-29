@@ -186,14 +186,8 @@ M.postfix_snippet = function(context, command, opts)
 		d(1, function(_, parent)
 			local original_capture = parent.env.POSTFIX_MATCH or ""
 
-			print("--- Luasnip Postfix Debug (Dynamic Node) ---")
-			print("Original Capture:", vim.inspect(original_capture))
-
 			local had_backslash = original_capture:match("^\\")
 			local clean_capture = original_capture:gsub("^\\+", "")
-
-			print("Had Backslash:", had_backslash)
-			print("Clean Capture:", vim.inspect(clean_capture))
 
 			if had_backslash then
 				-- If original had backslash: \muhat -> \hat{\mu}
