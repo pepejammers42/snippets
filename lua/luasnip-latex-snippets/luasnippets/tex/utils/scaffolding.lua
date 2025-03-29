@@ -174,8 +174,8 @@ M.postfix_snippet = function(context, command, opts)
 	context.name = context.name or context.trig
 	context.docstring = context.docstring or (command.pre .. "(matched_text)" .. command.post)
 
-	local match_pattern = "[a-zA-Z]+$" -- REMOVED optional backslash
-	local replace_pattern = "[a-zA-Z]+$" -- Match the simpler pattern
+	local match_pattern = "[a-zA-Z]+$"
+	local replace_pattern = "[a-zA-Z]+$"
 
 	local postfix_opts = vim.tbl_deep_extend("force", {
 		match_pattern = match_pattern,
@@ -183,50 +183,36 @@ M.postfix_snippet = function(context, command, opts)
 	}, opts)
 
 	return postfix(context, {
-		d(1, function(_, parent) -- Dynamic node at index 1
-			local original_capture = parent.snippet.env.POSTFIX_MATCH or ""
+		f(function(_, parent)
+			local original_capture = parent.env.POSTFIX_MATCH or ""
 			local prefix = command.pre -- e.g., "\\hat{"
 			local suffix = command.post -- e.g., "}"
 
-			-- (Optional: Keep prints for debugging if needed)
-			print("--- Luasnip Postfix Debug (Dynamic Node - Explicit t nodes) ---")
+			print("--- Luasnip Postfix Debug (Function Node) ---")
 			print("Original Capture:", vim.inspect(original_capture))
 
 			local had_backslash = original_capture:match("^\\")
 			local clean_capture = original_capture:gsub("^\\+", "")
 
+			print("Had Backslash:", had_backslash)
 			print("Clean Capture:", vim.inspect(clean_capture))
 
-			-- Build a list of nodes instead of a single string
-			local nodes_to_insert = {}
-
-			-- 1. Add the prefix node (e.g., t("\\hat{"))
-			table.insert(nodes_to_insert, t(prefix))
-
-			-- 2. Add the node for the cleaned capture (e.g., t("sigma") or t("mu"))
-			if clean_capture and #clean_capture > 0 then
-				-- If original had backslash, we need to add the backslash before the symbol
-				if had_backslash then
-					table.insert(nodes_to_insert, t("\\" .. clean_capture))
-				else
-					table.insert(nodes_to_insert, t(clean_capture))
-				end
+			-- Build the result string directly
+			local result
+			if had_backslash then
+				-- If original had backslash: \muhat -> \hat{\mu}
+				result = prefix .. "\\" .. clean_capture .. suffix
+			else
+				-- If original had no backslash: muhat -> \hat{mu}
+				result = prefix .. clean_capture .. suffix
 			end
 
-			-- 3. Add the suffix node (e.g., t("}"))
-			table.insert(nodes_to_insert, t(suffix))
+			print("Final Result:", vim.inspect(result))
+			print("------------------------------------------")
 
-			-- 4. Add final cursor position *inside* the dynamic node's result
-			table.insert(nodes_to_insert, i(0))
-
-			-- DEBUGGING: See the structure being returned
-			print("Constructed Nodes:", vim.inspect(nodes_to_insert))
-			print("----------------------------------------------------------")
-
-			-- Return a snippet node containing the list of constructed nodes
-			return sn(nil, nodes_to_insert)
+			return result
 		end),
-		-- No i(0) needed here as it's inside the dynamic node's result now
+		i(0),
 	}, postfix_opts)
 end
 
