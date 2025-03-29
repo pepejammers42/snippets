@@ -189,6 +189,7 @@ M.postfix_snippet = function(context, command, opts)
 			local had_backslash = original_capture:match("^\\")
 			-- Clean the capture of any existing backslashes
 			local clean_capture = original_capture:gsub("^\\+", "")
+			print(clean_capture)
 
 			-- Create the result directly
 			if had_backslash then
