@@ -40,11 +40,15 @@ local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2
 	local clean_capture = original_capture:gsub("^\\+", "")
 
 	if #clean_capture > 0 then
+		-- Remove the leading backslash from user_arg1 since we'll handle it in the logic
+		local clean_pre = user_arg1:gsub("^\\", "")
+
 		return sn(nil, {
-			t(user_arg1), -- \hat{
-			-- For single letters, don't add backslash; for longer text (like 'mu'), add backslash
-			t(clean_capture:match("^[a-zA-Z]$") and clean_capture or "\\" .. clean_capture),
-			t(user_arg2), -- }
+			t("\\"), -- Always start with one backslash
+			t(clean_pre), -- The command name without backslash
+			-- Just use the clean capture directly - no extra backslash needed
+			t(clean_capture),
+			t(user_arg2),
 			i(0),
 		})
 	elseif #visual_placeholder > 0 then
