@@ -174,7 +174,6 @@ M.postfix_snippet = function(context, command, opts)
 	context.name = context.name or context.trig
 	context.docstring = context.docstring or (command.pre .. "(matched_text)" .. command.post)
 
-	-- Updated pattern to explicitly handle backslash commands
 	local match_pattern = "\\?[a-zA-Z]+$"
 
 	local postfix_opts = vim.tbl_deep_extend("force", {
@@ -182,11 +181,8 @@ M.postfix_snippet = function(context, command, opts)
 		replace_pattern = "^",
 	}, opts)
 
-	-- Strip any leading backslash from the command.pre
-	local cleaned_pre = command.pre:gsub("^\\+", "\\")
-
 	return postfix(context, {
-		d(1, generate_postfix_dynamicnode, {}, { user_args = { cleaned_pre, command.post } }),
+		d(1, generate_postfix_dynamicnode, {}, { user_args = { command.pre, command.post } }),
 	}, postfix_opts)
 end
 
