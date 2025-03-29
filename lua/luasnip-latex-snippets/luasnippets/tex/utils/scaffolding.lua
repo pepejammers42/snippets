@@ -39,7 +39,7 @@ local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2
 
 	local final_capture = original_capture
 
-	-- <<<--- KEEP THIS WORKAROUND for capture --->>>
+	-- <<<--- UPDATED WORKAROUND for capture --->>>
 	if #original_capture > 0 and original_capture:match("^[a-zA-Z]+$") then
 		-- Use single backslash in the string - it will be properly escaped when parsed
 		final_capture = string.format("\\%s", original_capture)
@@ -47,9 +47,6 @@ local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2
 		final_capture = original_capture
 	end
 	-- <<<-------------------------------------->>>
-	--
-	print("Original capture:", vim.inspect(original_capture))
-	print("Final capture:", vim.inspect(final_capture))
 
 	local snippet_string
 	local body_nodes
@@ -57,8 +54,9 @@ local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2
 	if #final_capture > 0 then
 		-- Construct the target snippet string
 		snippet_string = user_arg1 .. final_capture .. user_arg2 .. "$0"
-		print("--- Postfix Debug --- Parsing Snippet String:", vim.inspect(snippet_string))
-
+		print("--- Postfix Debug --- Snippet String:", snippet_string)
+		print("--- Postfix Debug --- Original capture:", original_capture)
+		print("--- Postfix Debug --- Final capture:", final_capture)
 		-- <<<--- Parse WITHOUT context snippet --->>>
 		body_nodes = parse(nil, snippet_string)
 		-- <<<------------------------------------>>>
