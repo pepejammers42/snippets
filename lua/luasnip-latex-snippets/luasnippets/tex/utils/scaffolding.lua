@@ -32,48 +32,30 @@ local autosnippet = ls.extend_decorator.apply(s, { snippetType = "autosnippet" }
 
 M = {}
 
+-- postfix helper function - generates dynamic node
 local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2)
-	local original_capture = parent.snippet.env.POSTFIX_MATCH
-	local visual_placeholder = parent.snippet.env.SELECT_RAW
-
-	print("Original capture:", vim.inspect(original_capture))
-
-	if #original_capture > 0 then
-		-- Check if original capture started with a backslash
-		local had_backslash = original_capture:match("^\\")
-		-- Clean the capture of any existing backslashes
-		local clean_capture = original_capture:gsub("^\\+", "")
-
-		-- Create the result directly with raw strings
-		local result
-		if had_backslash then
-			-- If original had backslash: \muhat -> \hat{\mu}
-			result = [[\hat{\]] .. clean_capture .. [[}]]
-		else
-			-- If original had no backslash: muhat -> \hat{mu}
-			result = [[\hat{]] .. clean_capture .. [[}]]
-		end
-
-		print("Result:", vim.inspect(result))
-
-		-- Return the snippet directly
-		return sn(nil, { t(result), i(0) })
-	elseif #visual_placeholder > 0 then
-		-- Handle visual selection case
-		return sn(nil, {
-			t([[\hat{]]),
-			i(1, visual_placeholder),
-			t([[}]]),
-			i(0),
-		})
+	local capture = parent.snippet.env.POSTFIX_MATCH
+	if #capture > 0 then
+		return sn(
+			nil,
+			fmta(
+				[[
+        <><><><>
+        ]],
+				{ t(user_arg1), t(capture), t(user_arg2), i(0) }
+			)
+		)
 	else
-		-- Handle empty case
-		return sn(nil, {
-			t([[\hat{]]),
-			i(1),
-			t([[}]]),
-			i(0),
-		})
+		local visual_placeholder = parent.snippet.env.SELECT_RAW
+		return sn(
+			nil,
+			fmta(
+				[[
+        <><><><>
+        ]],
+				{ t(user_arg1), i(1, visual_placeholder), t(user_arg2), i(0) }
+			)
+		)
 	end
 end
 
@@ -121,11 +103,11 @@ M.symbol_snippet = function(context, command, opts)
 	context.name = context.name or command:gsub([[\]], "")
 	context.docstring = context.docstring or (command .. [[{0}]])
 	context.wordTrig = context.wordTrig or false
-
-	if opts.backslash == true then
+	j, _ = string.find(command, context.trig)
+	if j == 2 then -- command always starts with backslash
 		context.trigEngine = "ecma"
-
 		context.trig = "(?<!\\\\)" .. "(" .. context.trig .. ")"
+		context.hidden = true
 	end
 	return autosnippet(context, t(command), opts)
 end
@@ -149,20 +131,27 @@ M.single_command_snippet = function(context, command, opts, ext)
 	if ext.label == true then
 		docstring = [[{]] .. [[<1>]] .. [[}]] .. [[\label{(]] .. ext.short .. [[:<2>)?}]] .. [[<0>]]
 		ext.short = ext.short or command
-		lnode = c(2 + (offset or 0), {
-			t(""),
-			sn(
-				nil,
-				fmta(
-					[[
+		lnode =
+			c(2 + (offset or 0), {
+				t(""),
+				sn(
+					nil,
+					fmta(
+						[[
         \label{<>:<>}
         ]],
-					{ t(ext.short), i(1) }
-				)
-			),
-		})
+						{ t(ext.short), i(1) }
+					)
+				),
+			})
 	end
 	context.docstring = context.docstring or (command .. docstring)
+	j, _ = string.find(command, context.trig)
+	if j == 2 then
+		context.trigEngine = "ecma"
+		context.trig = "(?<!\\\\)" .. "(" .. context.trig .. ")"
+		context.hidden = true
+	end
 	-- stype = ext.stype or s
 	return s(
 		context,
@@ -176,45 +165,24 @@ M.postfix_snippet = function(context, command, opts)
 	if not context.trig then
 		error("context doesn't include a `trig` key which is mandatory", 2)
 	end
-	context.dscr = context.dscr or (command.pre .. "{...}" .. command.post)
-	context.name = context.name or context.trig
-	context.docstring = context.docstring or (command.pre .. "(matched_text)" .. command.post)
-
-	local match_pattern = "[a-zA-Z]+$"
-	local replace_pattern = "[a-zA-Z]+$"
-
-	local postfix_opts = vim.tbl_deep_extend("force", {
-		match_pattern = match_pattern,
-		replace_pattern = replace_pattern,
-	}, opts)
-
-	return postfix(context, {
-		d(1, function(_, parent)
-			local original_capture = parent.env.POSTFIX_MATCH or ""
-
-			local had_backslash = original_capture:match("^\\")
-			local clean_capture = original_capture:gsub("^\\+", "")
-
-			if had_backslash then
-				-- If original had backslash: \muhat -> \hat{\mu}
-				return sn(nil, {
-					t(command.pre),
-					t("\\"),
-					t(clean_capture),
-					t(command.post),
-					i(0),
-				})
-			else
-				-- If original had no backslash: muhat -> \hat{mu}
-				return sn(nil, {
-					t(command.pre),
-					t(clean_capture),
-					t(command.post),
-					i(0),
-				})
-			end
-		end),
-	}, postfix_opts)
+	if not context.trig then
+		error("context doesn't include a `trig` key which is mandatory", 2)
+	end
+	context.dscr = context.dscr
+	context.name = context.name or context.dscr
+	context.docstring = command.pre .. [[(POSTFIX_MATCH|VISUAL|<1>)]] .. command.post
+	context.match_pattern = [[[%w%.%_%-%"%']*$]]
+	j, _ = string.find(command.pre, context.trig)
+	if j == 2 then
+		context.trigEngine = "ecma"
+		context.trig = "(?<!\\\\)" .. "(" .. context.trig .. ")"
+		context.hidden = true
+	end
+	return postfix(
+		context,
+		{ d(1, generate_postfix_dynamicnode, {}, { user_args = { command.pre, command.post } }) },
+		opts
+	)
 end
 
 return M
