@@ -174,62 +174,48 @@ M.postfix_snippet = function(context, command, opts)
 	context.name = context.name or context.trig
 	context.docstring = context.docstring or (command.pre .. "(matched_text)" .. command.post)
 
-	-- Match optional backslash followed by one or more letters right before the trigger
 	local match_pattern = "\\?[a-zA-Z]+$"
-	-- Tell postfix to replace the text matched by match_pattern
 	local replace_pattern = match_pattern
 
 	local postfix_opts = vim.tbl_deep_extend("force", {
 		match_pattern = match_pattern,
-		replace_pattern = replace_pattern, -- Replace the matched part
+		replace_pattern = replace_pattern,
 	}, opts)
 
+	-- Use a dynamic node 'd' instead of 'f'
 	return postfix(context, {
-		f(function(_, parent)
-			local original_capture = parent.snippet.env.POSTFIX_MATCH or "" -- Default to empty string if nil
+		d(1, function(_, parent) -- Dynamic node at index 1
+			local original_capture = parent.snippet.env.POSTFIX_MATCH or ""
 			local prefix = command.pre
 			local suffix = command.post
 
-			-- DEBUGGING: Print captured values
-			print("--- Luasnip Postfix Debug ---")
-			print("Trigger:", vim.inspect(context.trig))
-			print("Original Capture (POSTFIX_MATCH):", vim.inspect(original_capture))
-			print("Prefix:", vim.inspect(prefix))
-			print("Suffix:", vim.inspect(suffix))
+			-- (Optional: Keep prints for debugging if needed)
+			print("--- Luasnip Postfix Debug (Dynamic Node) ---")
+			print("Original Capture:", vim.inspect(original_capture))
 
-			-- Check if original capture started with a backslash
 			local had_backslash = original_capture:match("^\\")
-			-- Clean the capture of any existing backslashes
 			local clean_capture = original_capture:gsub("^\\+", "")
 
-			print("Had Backslash:", vim.inspect(had_backslash))
 			print("Clean Capture:", vim.inspect(clean_capture))
 
-			-- Construct the result string
 			local result_text
 			if had_backslash then
-				-- If original had backslash: \sigmahat -> \hat{\sigma}
-				-- Ensure the added backslash is escaped for Lua string, resulting in a single literal backslash
 				result_text = string.format("%s\\%s%s", prefix, clean_capture, suffix)
 			else
-				-- If original had no backslash: muhat -> \hat{mu}
 				result_text = string.format("%s%s%s", prefix, clean_capture, suffix)
 			end
 
-			-- DEBUGGING: Print the final calculated string
 			print("Calculated Result Text:", vim.inspect(result_text))
-			print("-----------------------------")
+			print("------------------------------------------")
 
-			-- Return an explicit snippet node containing the text node
-			-- If result_text is empty or nil, return an empty node to avoid errors
+			-- Dynamic node function MUST return a snippet node (or nil)
 			if result_text and #result_text > 0 then
-				return result_text -- Return the string directly
+				-- Return a simple snippet node containing just the text
+				return sn(nil, { t(result_text) })
 			else
-				print("Warning: result_text is empty!")
-				return "" -- Return an empty string
+				return sn(nil, {}) -- Return empty snippet node
 			end
 		end),
-		i(0), -- Place cursor at the end
 	}, postfix_opts)
 end
 
