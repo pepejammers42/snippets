@@ -606,9 +606,8 @@ local function tex_post_snip(context, command, opts)
 		end),
 	}, opts)
 
-	-- Modified pattern to capture TeX commands like \mu
 	snippet.regTrig = true
-	snippet.pattern = "(\\%w+|[^%s%(%[{,]-)%" .. trigger .. "$"
+	snippet.pattern = "(\\%a+|[^\\%s%(%[{,])%" .. trigger .. "$"
 
 	return snippet
 end
