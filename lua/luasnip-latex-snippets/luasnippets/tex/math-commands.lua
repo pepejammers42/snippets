@@ -591,33 +591,11 @@ local postfix_math_specs = {
 	},
 }
 
-local function postfix_snippet_new(context, command, opts)
-	context.wordTrig = false
-	return ls.s(context, {
-		ls.d(1, function(args, parent)
-			local matched = parent.snippet.trigger:match("(.-)%" .. context.trig .. "$")
-			if matched:find("^\\") then
-				return ls.sn(nil, {
-					ls.t(command.pre),
-					ls.t(matched),
-					ls.t(command.post),
-				})
-			else
-				return ls.sn(nil, {
-					ls.t(command.pre),
-					ls.t(matched),
-					ls.t(command.post),
-				})
-			end
-		end),
-	}, opts)
-end
-
 local postfix_math_snippets = {}
 for k, v in pairs(postfix_math_specs) do
 	table.insert(
 		postfix_math_snippets,
-		postfix_snippet_new(
+		postfix_snippet(
 			vim.tbl_deep_extend("keep", {
 				trig = k,
 				snippetType = "autosnippet",
