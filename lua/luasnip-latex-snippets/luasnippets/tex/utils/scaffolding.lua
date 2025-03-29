@@ -37,7 +37,17 @@ local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2
 	-- user_arg2 = command.post (e.g., [[}]])
 	local capture = parent.snippet.env.POSTFIX_MATCH
 	local visual_placeholder = parent.snippet.env.SELECT_RAW
-
+	-- <<<--- ADD THIS DEBUG LINE --->>>
+	print(
+		"--- Postfix Debug ---",
+		"Capture:",
+		vim.inspect(capture),
+		"Pre:",
+		vim.inspect(user_arg1),
+		"Post:",
+		vim.inspect(user_arg2)
+	)
+	-- <<<------------------------>>>
 	if #capture > 0 then
 		-- We have a postfix match (e.g., "x" or "\mu")
 		-- Construct node: <pre><capture><post><cursor>
