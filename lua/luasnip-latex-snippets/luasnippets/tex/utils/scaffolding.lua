@@ -41,52 +41,78 @@ local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2
 		"--- Postfix Debug ---",
 		"Original Capture:",
 		vim.inspect(original_capture),
-		"Pre:",
-		vim.inspect(user_arg1),
-		"Post:",
+		"Pre (user_arg1):",
+		vim.inspect(user_arg1), -- Should be [[\hat{]]
+		"Post (user_arg2):",
 		vim.inspect(user_arg2)
 	)
 
 	local final_capture = original_capture
 
-	-- <<<--- KEEP THIS WORKAROUND --->>>
+	-- <<<--- KEEP THIS WORKAROUND for capture --->>>
 	if #original_capture > 0 and original_capture:match("^[a-zA-Z]+$") then
-		print("--- Postfix Debug --- Applying backslash workaround")
-		final_capture = "\\" .. original_capture
+		print("--- Postfix Debug --- Applying backslash workaround to capture")
+		final_capture = "\\" .. original_capture -- Should result in \mu
 	end
-	-- <<<-------------------------->>>
+	-- <<<-------------------------------------->>>
 
-	-- <<<--- Create a function node for the prefix --->>>
-	local prefix_node = f(function()
-		return user_arg1 -- Return the raw prefix string (e.g., [[\hat{]])
-	end, {})
-	-- <<<------------------------------------------>>>
+	-- Debug the capture after potential modification
+	print("--- Postfix Debug --- Final Capture:", vim.inspect(final_capture))
 
 	if #final_capture > 0 then
-		-- Use f() for prefix, t() for the rest
+		-- Use f() node for the prefix, t() for the corrected capture and postfix
 		return sn(nil, {
-			prefix_node, -- Use the function node here
-			t(final_capture), -- Use text node for corrected capture
-			t(user_arg2), -- Use text node for postfix
+			f(function()
+				return user_arg1
+			end), -- Use function node for raw prefix
+			t(final_capture), -- Use text node for corrected capture (\mu)
+			t(user_arg2), -- Use text node for postfix (})
 			i(0), -- Final cursor position
 		})
 	elseif #visual_placeholder > 0 then
-		-- Visual selection
+		-- Visual selection: Use f() node for prefix as well
 		return sn(nil, {
-			prefix_node, -- Use the function node here
-			i(1, visual_placeholder),
-			t(user_arg2),
+			f(function()
+				return user_arg1
+			end), -- Use function node for raw prefix
+			i(1, visual_placeholder), -- Insert node for selection
+			t(user_arg2), -- Use text node for postfix (})
 			i(0),
 		})
 	else
-		-- Fallback
+		-- Fallback: Use f() node for prefix
 		return sn(nil, {
-			prefix_node, -- Use the function node here
-			i(1, ""),
-			t(user_arg2),
+			f(function()
+				return user_arg1
+			end), -- Use function node for raw prefix
+			i(1, ""), -- Empty insert node
+			t(user_arg2), -- Use text node for postfix (})
 			i(0),
 		})
 	end
+end
+
+-- Ensure M.postfix_snippet is still using the combined pattern
+-- and calling this generate_postfix_dynamicnode function.
+M.postfix_snippet = function(context, command, opts)
+	opts = opts or {}
+	if not context.trig then
+		error("context doesn't include a `trig` key which is mandatory", 2)
+	end
+	context.dscr = context.dscr or (command.pre .. "{...}" .. command.post)
+	context.name = context.name or context.trig
+	context.docstring = context.docstring or (command.pre .. "(matched_text)" .. command.post)
+
+	local match_pattern = "(\\[a-zA-Z]+)$|([^\\%s]+)$" -- Combined pattern
+
+	local postfix_opts = vim.tbl_deep_extend("force", {
+		match_pattern = match_pattern,
+		replace_pattern = "^", -- Replace from start
+	}, opts)
+
+	return postfix(context, {
+		d(1, generate_postfix_dynamicnode, {}, { user_args = { command.pre, command.post } }),
+	}, postfix_opts)
 end
 
 -- visual util to add insert node - thanks ejmastnak!
