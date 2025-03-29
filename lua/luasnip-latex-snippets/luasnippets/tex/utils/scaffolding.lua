@@ -32,7 +32,6 @@ local autosnippet = ls.extend_decorator.apply(s, { snippetType = "autosnippet" }
 
 M = {}
 
--- postfix helper function - generates dynamic node
 local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2)
 	-- user_arg1 = command.pre (e.g., [[\hat{]])
 	-- user_arg2 = command.post (e.g., [[}]])
@@ -41,42 +40,31 @@ local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2
 
 	if #capture > 0 then
 		-- We have a postfix match (e.g., "x" or "\mu")
-		return sn(
-			nil,
-			-- Format: <pre><capture><post><cursor>
-			-- Example: \hat{ \mu } <cursor>
-			fmta("{}{}{}{}", {
-				t(user_arg1), -- e.g., \hat{
-				t(capture), -- e.g., \mu or x
-				t(user_arg2), -- e.g., }
-				i(0), -- Final cursor position
-			})
-		)
+		-- Construct node: <pre><capture><post><cursor>
+		return sn(nil, {
+			t(user_arg1), -- e.g., \hat{
+			t(capture), -- e.g., \mu or x
+			t(user_arg2), -- e.g., }
+			i(0), -- Final cursor position
+		})
 	elseif #visual_placeholder > 0 then
 		-- We have a visual selection
-		return sn(
-			nil,
-			-- Format: <pre><visual_selection><post><cursor>
-			-- Example: \hat{ <selected_text> } <cursor>
-			fmta("{}{}{}{}", {
-				t(user_arg1),
-				i(1, visual_placeholder), -- Insert node with selected text
-				t(user_arg2),
-				i(0),
-			})
-		)
+		-- Construct node: <pre><visual_selection><post><cursor>
+		return sn(nil, {
+			t(user_arg1),
+			i(1, visual_placeholder), -- Insert node with selected text
+			t(user_arg2),
+			i(0),
+		})
 	else
-		-- No postfix match and no visual selection (shouldn't happen with postfix?)
-		-- Provide a placeholder anyway
-		return sn(
-			nil,
-			fmta("{}{}{}{}", {
-				t(user_arg1),
-				i(1, ""), -- Empty insert node
-				t(user_arg2),
-				i(0),
-			})
-		)
+		-- No postfix match and no visual selection
+		-- Construct node: <pre><placeholder><post><cursor>
+		return sn(nil, {
+			t(user_arg1),
+			i(1, ""), -- Empty insert node
+			t(user_arg2),
+			i(0),
+		})
 	end
 end
 
