@@ -36,33 +36,68 @@ local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2
 	local original_capture = parent.snippet.env.POSTFIX_MATCH
 	local visual_placeholder = parent.snippet.env.SELECT_RAW
 
-	-- Check if original capture started with a backslash
-	local had_backslash = original_capture:match("^\\")
-	-- Clean the capture of any existing backslashes
-	local clean_capture = original_capture:gsub("^\\+", "")
+	-- Debug the inputs
+	print("Original capture:", vim.inspect(original_capture))
+	print("user_arg1:", vim.inspect(user_arg1))
 
-	if #clean_capture > 0 then
-		-- Remove the leading backslash from user_arg1 since we'll handle it in the logic
-		local clean_pre = user_arg1:gsub("^\\", "")
+	if #original_capture > 0 then
+		-- Check if original capture started with a backslash
+		local had_backslash = original_capture:match("^\\")
+		-- Clean the capture of any existing backslashes
+		local clean_capture = original_capture:gsub("^\\+", "")
 
-		return sn(nil, {
-			t("\\"), -- Always start with one backslash for the command
-			t(clean_pre), -- The command name without backslash
-			-- Add backslash to capture only if it originally had one
-			t(had_backslash and "\\" .. clean_capture or clean_capture),
-			t(user_arg2),
-			i(0),
-		})
+		-- Handle the case where user_arg1 has a backslash
+		if user_arg1:match("^\\") then
+			-- For commands with backslash in user_arg1
+			if had_backslash then
+				-- If original capture had backslash: \muhat -> \hat{\mu}
+				return sn(nil, {
+					t(user_arg1), -- Already has backslash
+					t("\\" .. clean_capture),
+					t(user_arg2),
+					i(0),
+				})
+			else
+				-- If original capture had no backslash: muhat -> \hat{mu}
+				return sn(nil, {
+					t(user_arg1), -- Already has backslash
+					t(clean_capture),
+					t(user_arg2),
+					i(0),
+				})
+			end
+		else
+			-- For commands without backslash in user_arg1
+			if had_backslash then
+				-- If original capture had backslash
+				return sn(nil, {
+					t("\\" .. user_arg1),
+					t("\\" .. clean_capture),
+					t(user_arg2),
+					i(0),
+				})
+			else
+				-- If original capture had no backslash
+				return sn(nil, {
+					t("\\" .. user_arg1),
+					t(clean_capture),
+					t(user_arg2),
+					i(0),
+				})
+			end
+		end
 	elseif #visual_placeholder > 0 then
+		-- Handle visual selection case
 		return sn(nil, {
-			t(user_arg1),
+			t(user_arg1:match("^\\") and user_arg1 or "\\" .. user_arg1),
 			i(1, visual_placeholder),
 			t(user_arg2),
 			i(0),
 		})
 	else
+		-- Handle empty case
 		return sn(nil, {
-			t(user_arg1),
+			t(user_arg1:match("^\\") and user_arg1 or "\\" .. user_arg1),
 			i(1),
 			t(user_arg2),
 			i(0),
