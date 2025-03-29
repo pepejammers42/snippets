@@ -35,7 +35,7 @@ M = {}
 local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2)
 	local original_capture = parent.snippet.env.POSTFIX_MATCH
 	local visual_placeholder = parent.snippet.env.SELECT_RAW
-	local context_snippet = parent.snippet -- Original snippet context
+	-- local context_snippet = parent.snippet -- No longer needed here
 
 	local final_capture = original_capture
 
@@ -46,19 +46,19 @@ local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2
 	-- <<<-------------------------------------->>>
 
 	local snippet_string
-	local body_nodes -- Variable to hold the result of parse
+	local body_nodes
 
 	if #final_capture > 0 then
 		-- Construct the target snippet string
 		snippet_string = user_arg1 .. final_capture .. user_arg2 .. "$0"
 		print("--- Postfix Debug --- Parsing Snippet String:", vim.inspect(snippet_string))
 
-		-- Parse the string into snippet body nodes
-		body_nodes = parse(context_snippet, snippet_string)
+		-- <<<--- Parse WITHOUT context snippet --->>>
+		body_nodes = parse(nil, snippet_string)
+		-- <<<------------------------------------>>>
 
-		-- <<<--- WRAP the parsed nodes in a snippetNode --->>>
+		-- Wrap the parsed nodes in a snippetNode
 		return sn(nil, body_nodes)
-	-- <<<--------------------------------------------->>>
 	elseif #visual_placeholder > 0 then
 		-- Keep the working node approach for visual selection
 		print("--- Postfix Debug --- Using node approach for visual selection")
@@ -68,19 +68,18 @@ local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2
 			end),
 			i(1, visual_placeholder),
 			t(user_arg2),
-			-- i(0) is implicit in i(1) being the last stop
 		})
 	else
 		-- Fallback: Construct string and parse
 		snippet_string = user_arg1 .. "$1" .. user_arg2 .. "$0"
 		print("--- Postfix Debug --- Parsing Fallback Snippet String:", vim.inspect(snippet_string))
 
-		-- Parse the string into snippet body nodes
-		body_nodes = parse(context_snippet, snippet_string)
+		-- <<<--- Parse WITHOUT context snippet --->>>
+		body_nodes = parse(nil, snippet_string)
+		-- <<<------------------------------------>>>
 
-		-- <<<--- WRAP the parsed nodes in a snippetNode --->>>
+		-- Wrap the parsed nodes in a snippetNode
 		return sn(nil, body_nodes)
-		-- <<<--------------------------------------------->>>
 	end
 end
 
