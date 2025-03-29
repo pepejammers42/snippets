@@ -33,38 +33,37 @@ local autosnippet = ls.extend_decorator.apply(s, { snippetType = "autosnippet" }
 M = {}
 
 local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2)
+	print("user_arg1:", vim.inspect(user_arg1))
+	print("user_arg2:", vim.inspect(user_arg2))
 	local original_capture = parent.snippet.env.POSTFIX_MATCH
 	local visual_placeholder = parent.snippet.env.SELECT_RAW
 
-	-- Remove any existing backslashes from the capture
+	-- Clean the capture and add backslash if needed
 	local clean_capture = original_capture:gsub("^\\+", "")
-
-	-- Add a single backslash if it's a plain text capture
 	local final_capture = clean_capture:match("^[a-zA-Z]+$") and "\\" .. clean_capture or clean_capture
 
-	local snippet_string
-	local body_nodes
-
 	if #final_capture > 0 then
-		snippet_string = user_arg1 .. final_capture .. user_arg2 .. "$0"
-		print("--- Postfix Debug --- Snippet String:", snippet_string)
-		print("--- Postfix Debug --- Original capture:", original_capture)
-		print("--- Postfix Debug --- Final capture:", final_capture)
-
-		body_nodes = parse(nil, snippet_string)
-		return sn(nil, body_nodes)
+		-- Instead of parsing, use direct text nodes
+		return sn(nil, {
+			t(user_arg1), -- command.pre (e.g., "\hat{")
+			t(final_capture),
+			t(user_arg2), -- command.post (e.g., "}")
+			i(0),
+		})
 	elseif #visual_placeholder > 0 then
 		return sn(nil, {
-			f(function()
-				return user_arg1
-			end),
+			t(user_arg1),
 			i(1, visual_placeholder),
 			t(user_arg2),
+			i(0),
 		})
 	else
-		snippet_string = user_arg1 .. "$1" .. user_arg2 .. "$0"
-		body_nodes = parse(nil, snippet_string)
-		return sn(nil, body_nodes)
+		return sn(nil, {
+			t(user_arg1),
+			i(1),
+			t(user_arg2),
+			i(0),
+		})
 	end
 end
 
