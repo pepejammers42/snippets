@@ -223,11 +223,10 @@ M.postfix_snippet = function(context, command, opts)
 			-- Return an explicit snippet node containing the text node
 			-- If result_text is empty or nil, return an empty node to avoid errors
 			if result_text and #result_text > 0 then
-				return sn(nil, { t(result_text) })
+				return result_text -- Return the string directly
 			else
-				-- This case shouldn't normally happen with the current logic, but good for safety
 				print("Warning: result_text is empty!")
-				return sn(nil, {})
+				return "" -- Return an empty string
 			end
 		end),
 		i(0), -- Place cursor at the end
