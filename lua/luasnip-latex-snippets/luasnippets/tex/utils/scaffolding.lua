@@ -36,7 +36,6 @@ local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2
 	local original_capture = parent.snippet.env.POSTFIX_MATCH
 	local visual_placeholder = parent.snippet.env.SELECT_RAW
 
-	-- Debug the inputs
 	print("Original capture:", vim.inspect(original_capture))
 	print("user_arg1:", vim.inspect(user_arg1))
 
@@ -46,60 +45,34 @@ local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2
 		-- Clean the capture of any existing backslashes
 		local clean_capture = original_capture:gsub("^\\+", "")
 
-		-- Handle the case where user_arg1 has a backslash
-		if user_arg1:match("^\\") then
-			-- For commands with backslash in user_arg1
-			if had_backslash then
-				-- If original capture had backslash: \muhat -> \hat{\mu}
-				return sn(nil, {
-					t(user_arg1), -- Already has backslash
-					t("\\" .. clean_capture),
-					t(user_arg2),
-					i(0),
-				})
-			else
-				-- If original capture had no backslash: muhat -> \hat{mu}
-				return sn(nil, {
-					t(user_arg1), -- Already has backslash
-					t(clean_capture),
-					t(user_arg2),
-					i(0),
-				})
-			end
+		-- Create the snippet directly as a string
+		local result
+		if had_backslash then
+			-- If original had backslash: \muhat -> \hat{\mu}
+			result = "\\hat{\\" .. clean_capture .. "}"
 		else
-			-- For commands without backslash in user_arg1
-			if had_backslash then
-				-- If original capture had backslash
-				return sn(nil, {
-					t("\\" .. user_arg1),
-					t("\\" .. clean_capture),
-					t(user_arg2),
-					i(0),
-				})
-			else
-				-- If original capture had no backslash
-				return sn(nil, {
-					t("\\" .. user_arg1),
-					t(clean_capture),
-					t(user_arg2),
-					i(0),
-				})
-			end
+			-- If original had no backslash: muhat -> \hat{mu}
+			result = "\\hat{" .. clean_capture .. "}"
 		end
+
+		print("Result:", vim.inspect(result))
+
+		-- Return the snippet directly
+		return sn(nil, { t(result), i(0) })
 	elseif #visual_placeholder > 0 then
 		-- Handle visual selection case
 		return sn(nil, {
-			t(user_arg1:match("^\\") and user_arg1 or "\\" .. user_arg1),
+			t("\\hat{"),
 			i(1, visual_placeholder),
-			t(user_arg2),
+			t("}"),
 			i(0),
 		})
 	else
 		-- Handle empty case
 		return sn(nil, {
-			t(user_arg1:match("^\\") and user_arg1 or "\\" .. user_arg1),
+			t("\\hat{"),
 			i(1),
-			t(user_arg2),
+			t("}"),
 			i(0),
 		})
 	end
