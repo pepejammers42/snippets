@@ -36,59 +36,48 @@ local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2
 	local original_capture = parent.snippet.env.POSTFIX_MATCH
 	local visual_placeholder = parent.snippet.env.SELECT_RAW
 
-	-- Debugging (optional)
-	print(
-		"--- Postfix Debug ---",
-		"Original Capture:",
-		vim.inspect(original_capture),
-		"Pre (user_arg1):",
-		vim.inspect(user_arg1), -- Should be [[\hat{]]
-		"Post (user_arg2):",
-		vim.inspect(user_arg2)
-	)
-
 	local final_capture = original_capture
 
 	-- <<<--- KEEP THIS WORKAROUND for capture --->>>
 	if #original_capture > 0 and original_capture:match("^[a-zA-Z]+$") then
-		print("--- Postfix Debug --- Applying backslash workaround to capture")
-		final_capture = "\\" .. original_capture -- Should result in \mu
+		final_capture = "\\" .. original_capture -- Should result in \mu string
 	end
 	-- <<<-------------------------------------->>>
 
-	-- Debug the capture after potential modification
-	print("--- Postfix Debug --- Final Capture:", vim.inspect(final_capture))
+	local snippet_string
+	local context_snippet = parent.snippet -- Snippet object needed for parse context
 
 	if #final_capture > 0 then
-		-- Use f() node for the prefix, t() for the corrected capture and postfix
-		return sn(nil, {
-			f(function()
-				return user_arg1
-			end), -- Use function node for raw prefix
-			t(final_capture), -- Use text node for corrected capture (\mu)
-			t(user_arg2), -- Use text node for postfix (})
-			i(0), -- Final cursor position
-		})
+		-- Construct the target snippet string directly
+		-- user_arg1 comes from [[\hat{]], final_capture is "\mu", user_arg2 is "}"
+		-- $0 indicates the final cursor position
+		snippet_string = user_arg1 .. final_capture .. user_arg2 .. "$0"
+		-- Example result: "\hat{\mu}$0"
+
+		print("--- Postfix Debug --- Parsing Snippet String:", vim.inspect(snippet_string))
+
+		-- Parse the string into snippet nodes using LuaSnip's parser
+		-- The second argument is the snippet body string
+		return parse(context_snippet, snippet_string)
 	elseif #visual_placeholder > 0 then
-		-- Visual selection: Use f() node for prefix as well
+		-- For visual selection, constructing a parseable string with the placeholder
+		-- content can be tricky due to potential special chars in the selection.
+		-- Let's stick to the node approach that worked previously for visual.
+		-- If the main case works with parse(), we can revisit this if needed.
+		print("--- Postfix Debug --- Using node approach for visual selection")
 		return sn(nil, {
 			f(function()
 				return user_arg1
 			end), -- Use function node for raw prefix
 			i(1, visual_placeholder), -- Insert node for selection
 			t(user_arg2), -- Use text node for postfix (})
-			i(0),
+			-- No need for i(0) here as i(1) defines the cursor stop
 		})
 	else
-		-- Fallback: Use f() node for prefix
-		return sn(nil, {
-			f(function()
-				return user_arg1
-			end), -- Use function node for raw prefix
-			i(1, ""), -- Empty insert node
-			t(user_arg2), -- Use text node for postfix (})
-			i(0),
-		})
+		-- Fallback: Construct string with an insert node $1
+		snippet_string = user_arg1 .. "$1" .. user_arg2 .. "$0"
+		print("--- Postfix Debug --- Parsing Fallback Snippet String:", vim.inspect(snippet_string))
+		return parse(context_snippet, snippet_string)
 	end
 end
 
