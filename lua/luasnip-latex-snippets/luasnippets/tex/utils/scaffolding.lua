@@ -203,20 +203,20 @@ M.postfix_snippet = function(context, command, opts)
 			-- 1. Add the prefix node (e.g., t("\\hat{"))
 			table.insert(nodes_to_insert, t(prefix))
 
-			if had_backslash then
-				-- 2a. If original had backslash, add a node for the literal backslash
-				table.insert(nodes_to_insert, t("\\")) -- Node containing just "\"
-			end
-
-			-- 3. Add the node for the cleaned capture (e.g., t("sigma") or t("mu"))
+			-- 2. Add the node for the cleaned capture (e.g., t("sigma") or t("mu"))
 			if clean_capture and #clean_capture > 0 then
-				table.insert(nodes_to_insert, t(clean_capture))
+				-- If original had backslash, we need to add the backslash before the symbol
+				if had_backslash then
+					table.insert(nodes_to_insert, t("\\" .. clean_capture))
+				else
+					table.insert(nodes_to_insert, t(clean_capture))
+				end
 			end
 
-			-- 4. Add the suffix node (e.g., t("}"))
+			-- 3. Add the suffix node (e.g., t("}"))
 			table.insert(nodes_to_insert, t(suffix))
 
-			-- 5. Add final cursor position *inside* the dynamic node's result
+			-- 4. Add final cursor position *inside* the dynamic node's result
 			table.insert(nodes_to_insert, i(0))
 
 			-- DEBUGGING: See the structure being returned
