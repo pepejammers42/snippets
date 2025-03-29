@@ -182,15 +182,14 @@ M.postfix_snippet = function(context, command, opts)
 		replace_pattern = replace_pattern,
 	}, opts)
 
-	-- Use a dynamic node 'd' instead of 'f'
 	return postfix(context, {
 		d(1, function(_, parent) -- Dynamic node at index 1
 			local original_capture = parent.snippet.env.POSTFIX_MATCH or ""
-			local prefix = command.pre
-			local suffix = command.post
+			local prefix = command.pre -- e.g., "\\hat{"
+			local suffix = command.post -- e.g., "}"
 
 			-- (Optional: Keep prints for debugging if needed)
-			print("--- Luasnip Postfix Debug (Dynamic Node) ---")
+			print("--- Luasnip Postfix Debug (Dynamic Node - Explicit t nodes) ---")
 			print("Original Capture:", vim.inspect(original_capture))
 
 			local had_backslash = original_capture:match("^\\")
@@ -198,24 +197,36 @@ M.postfix_snippet = function(context, command, opts)
 
 			print("Clean Capture:", vim.inspect(clean_capture))
 
-			local result_text
+			-- Build a list of nodes instead of a single string
+			local nodes_to_insert = {}
+
+			-- 1. Add the prefix node (e.g., t("\\hat{"))
+			table.insert(nodes_to_insert, t(prefix))
+
 			if had_backslash then
-				result_text = string.format("%s\\%s%s", prefix, clean_capture, suffix)
-			else
-				result_text = string.format("%s%s%s", prefix, clean_capture, suffix)
+				-- 2a. If original had backslash, add a node for the literal backslash
+				table.insert(nodes_to_insert, t("\\")) -- Node containing just "\"
 			end
 
-			print("Calculated Result Text:", vim.inspect(result_text))
-			print("------------------------------------------")
-
-			-- Dynamic node function MUST return a snippet node (or nil)
-			if result_text and #result_text > 0 then
-				-- Return a simple snippet node containing just the text
-				return sn(nil, { t(result_text) })
-			else
-				return sn(nil, {}) -- Return empty snippet node
+			-- 3. Add the node for the cleaned capture (e.g., t("sigma") or t("mu"))
+			if clean_capture and #clean_capture > 0 then
+				table.insert(nodes_to_insert, t(clean_capture))
 			end
+
+			-- 4. Add the suffix node (e.g., t("}"))
+			table.insert(nodes_to_insert, t(suffix))
+
+			-- 5. Add final cursor position *inside* the dynamic node's result
+			table.insert(nodes_to_insert, i(0))
+
+			-- DEBUGGING: See the structure being returned
+			print("Constructed Nodes:", vim.inspect(nodes_to_insert))
+			print("----------------------------------------------------------")
+
+			-- Return a snippet node containing the list of constructed nodes
+			return sn(nil, nodes_to_insert)
 		end),
+		-- No i(0) needed here as it's inside the dynamic node's result now
 	}, postfix_opts)
 end
 
