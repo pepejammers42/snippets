@@ -183,12 +183,10 @@ M.postfix_snippet = function(context, command, opts)
 	}, opts)
 
 	return postfix(context, {
-		f(function(_, parent)
+		d(1, function(_, parent)
 			local original_capture = parent.env.POSTFIX_MATCH or ""
-			local prefix = command.pre -- e.g., "\\hat{"
-			local suffix = command.post -- e.g., "}"
 
-			print("--- Luasnip Postfix Debug (Function Node) ---")
+			print("--- Luasnip Postfix Debug (Dynamic Node) ---")
 			print("Original Capture:", vim.inspect(original_capture))
 
 			local had_backslash = original_capture:match("^\\")
@@ -197,22 +195,25 @@ M.postfix_snippet = function(context, command, opts)
 			print("Had Backslash:", had_backslash)
 			print("Clean Capture:", vim.inspect(clean_capture))
 
-			-- Build the result string directly
-			local result
 			if had_backslash then
 				-- If original had backslash: \muhat -> \hat{\mu}
-				result = prefix .. "\\" .. clean_capture .. suffix
+				return sn(nil, {
+					t(command.pre),
+					t("\\"),
+					t(clean_capture),
+					t(command.post),
+					i(0),
+				})
 			else
 				-- If original had no backslash: muhat -> \hat{mu}
-				result = prefix .. clean_capture .. suffix
+				return sn(nil, {
+					t(command.pre),
+					t(clean_capture),
+					t(command.post),
+					i(0),
+				})
 			end
-
-			print("Final Result:", vim.inspect(result))
-			print("------------------------------------------")
-
-			return result
 		end),
-		i(0),
 	}, postfix_opts)
 end
 
