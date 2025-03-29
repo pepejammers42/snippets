@@ -29,33 +29,53 @@ local types = require("luasnip.util.types")
 local parse = require("luasnip.util.parser").parse_snippet
 local ms = ls.multi_snippet
 local autosnippet = ls.extend_decorator.apply(s, { snippetType = "autosnippet" })
-local generate_postfix_dynamicnode = require("luasnip.extras.postfix").generate_dynamic_node
 
 M = {}
 
 -- postfix helper function - generates dynamic node
 local generate_postfix_dynamicnode = function(_, parent, _, user_arg1, user_arg2)
+	-- user_arg1 = command.pre (e.g., [[\hat{]])
+	-- user_arg2 = command.post (e.g., [[}]])
 	local capture = parent.snippet.env.POSTFIX_MATCH
+	local visual_placeholder = parent.snippet.env.SELECT_RAW
+
 	if #capture > 0 then
+		-- We have a postfix match (e.g., "x" or "\mu")
 		return sn(
 			nil,
-			fmta(
-				[[
-        <><><><>
-        ]],
-				{ t(user_arg1), t(capture), t(user_arg2), i(0) }
-			)
+			-- Format: <pre><capture><post><cursor>
+			-- Example: \hat{ \mu } <cursor>
+			fmta("{}{}{}{}", {
+				t(user_arg1), -- e.g., \hat{
+				t(capture), -- e.g., \mu or x
+				t(user_arg2), -- e.g., }
+				i(0), -- Final cursor position
+			})
+		)
+	elseif #visual_placeholder > 0 then
+		-- We have a visual selection
+		return sn(
+			nil,
+			-- Format: <pre><visual_selection><post><cursor>
+			-- Example: \hat{ <selected_text> } <cursor>
+			fmta("{}{}{}{}", {
+				t(user_arg1),
+				i(1, visual_placeholder), -- Insert node with selected text
+				t(user_arg2),
+				i(0),
+			})
 		)
 	else
-		local visual_placeholder = parent.snippet.env.SELECT_RAW
+		-- No postfix match and no visual selection (shouldn't happen with postfix?)
+		-- Provide a placeholder anyway
 		return sn(
 			nil,
-			fmta(
-				[[
-        <><><><>
-        ]],
-				{ t(user_arg1), i(1, visual_placeholder), t(user_arg2), i(0) }
-			)
+			fmta("{}{}{}{}", {
+				t(user_arg1),
+				i(1, ""), -- Empty insert node
+				t(user_arg2),
+				i(0),
+			})
 		)
 	end
 end
@@ -153,17 +173,24 @@ M.postfix_snippet = function(context, command, opts)
 	if not context.trig then
 		error("context doesn't include a `trig` key which is mandatory", 2)
 	end
-	context.dscr = context.dscr
-	context.name = context.name or context.dscr
-	context.docstring = command.pre .. "(MATCH)" .. command.post
+	context.dscr = context.dscr or (command.pre .. "{...}" .. command.post) -- Improved description
+	context.name = context.name or context.trig
+	context.docstring = context.docstring or (command.pre .. "(matched_text)" .. command.post)
 
+	-- This pattern tries to match:
+	-- 1. A LaTeX command: A backslash followed by one or more letters (\%a+)
+	-- 2. OR: One or more characters that are NOT backslash or whitespace ([^\\%s]+)
+	-- Both must occur immediately before the trigger ($)
 	local match_pattern = "(\\%a+)$|([^\\%s]+)$"
 
 	local postfix_opts = vim.tbl_deep_extend("force", {
 		match_pattern = match_pattern,
+		-- Ensure trigger is removed. 'end' refers to the end of the match + trigger.
+		replace_pattern = "^", -- Replace from the start of the match
 	}, opts)
 
 	return postfix(context, {
+		-- Use the dynamic node generator defined above
 		d(1, generate_postfix_dynamicnode, {}, { user_args = { command.pre, command.post } }),
 	}, postfix_opts)
 end
