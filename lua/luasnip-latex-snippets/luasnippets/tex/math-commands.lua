@@ -591,17 +591,36 @@ local postfix_math_specs = {
 	},
 }
 
-local postfix_math_snippets = {}
-for k, v in pairs(postfix_math_specs) do
+local regex_postfix_math_snippets = {}
+
+for trig, spec in pairs(postfix_math_specs) do
+	local latex_cmd = spec.command.pre:gsub("{$", "")
+	local regex_trigger = "([a-zA-Z0-9]|\\\\(?:[a-zA-Z]+|.))" .. trig
+
 	table.insert(
-		postfix_math_snippets,
-		postfix_snippet(
-			vim.tbl_deep_extend("keep", { trig = k, snippetType = "autosnippet" }, v.context),
-			v.command,
-			{ condition = tex.in_math }
+		regex_postfix_math_snippets,
+		s(
+			{
+				trig = regex_trigger,
+				regTrig = true,
+				wordTrig = false,
+				snippetType = "autosnippet",
+				-- Add context info, potentially modifying description
+				dscr = (spec.context.dscr or spec.context.name) .. " (regex postfix)",
+				priority = (spec.context.priority or 1100) + 100,
+				name = spec.context.name .. "_regex_postfix",
+			},
+			fmta(latex_cmd .. "{<>}", {
+				f(function(_, snip)
+					return snip.captures[1] or ""
+				end),
+			}),
+			{
+				condition = tex.in_math,
+			}
 		)
 	)
 end
-vim.list_extend(M, postfix_math_snippets)
+vim.list_extend(M, regex_postfix_math_snippets)
 
 return M
