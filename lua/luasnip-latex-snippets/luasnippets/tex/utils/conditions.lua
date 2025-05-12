@@ -49,6 +49,7 @@ end
 -- credits: https://github.com/frankroeder/dotfiles/blob/657a5dc559e9ff526facc2e74f9cc07a1875cac6/nvim/lua/tsutils.lua#L59
 local has_treesitter, ts = pcall(require, "vim.treesitter")
 local _, query = pcall(require, "vim.treesitter.query")
+local ok_utils, ts_utils = pcall(require, "nvim-treesitter.ts_utils")
 
 local MATH_ENVIRONMENTS =
 	{ displaymath = true, equation = true, eqnarray = true, align = true, math = true, array = true, aligned = true }
@@ -105,7 +106,13 @@ local function block_dollar_fallback()
 	return false
 end
 
-local function parser_node_at_cursor()
+local function node_at_cursor()
+	if ok_utils then
+		local n = ts_utils.get_node_at_cursor()
+		if n then
+			return n
+		end
+	end
 	local row, col = unpack(vim.api.nvim_win_get_cursor(0))
 	local buf = vim.api.nvim_get_current_buf()
 	local ok, parser = pcall(ts.get_parser, buf, "markdown_inline")
@@ -119,7 +126,13 @@ local function parser_node_at_cursor()
 	if not tree then
 		return nil
 	end
-	return tree:root():descendant_for_range(row - 1, col, row - 1, col)
+	local n = tree:root():descendant_for_range(row - 1, col, row - 1, col)
+	if n then
+		return n
+	end
+	if col > 0 then
+		return tree:root():descendant_for_range(row - 1, col - 1, row - 1, col - 1)
+	end
 end
 
 local function in_markdown_mathzone()
@@ -129,9 +142,10 @@ local function in_markdown_mathzone()
 	if not has_treesitter then
 		return inline_dollar_fallback()
 	end
-	local node = parser_node_at_cursor()
+	local node = node_at_cursor()
 	while node do
-		if node.lang and node:lang() == "latex" then
+		local ok, lang = pcall(node.lang, node)
+		if ok and lang == "latex" then
 			return true
 		end
 		local t = node:type()
