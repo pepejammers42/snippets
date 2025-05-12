@@ -65,19 +65,18 @@ local MATH_NODES = {
 	inline_formula = true,
 }
 
+-- Fallback helper
 local function get_node_text(node, bufnr)
 	if query and type(query.get_node_text) == "function" then
 		return query.get_node_text(node, bufnr)
-	elseif vim.treesitter and vim.treesitter.get_node_text then
+	elseif vim.treesitter.get_node_text then
 		return vim.treesitter.get_node_text(node, bufnr)
 	end
 	return nil
 end
 
+-- Detect LaTeX math in .tex
 local function get_latex_node_at_cursor()
-	if not has_treesitter then
-		return nil
-	end
 	local row, col = unpack(vim.api.nvim_win_get_cursor(0))
 	local range = { row - 1, col }
 	local buf = vim.api.nvim_get_current_buf()
@@ -93,16 +92,16 @@ local function get_latex_node_at_cursor()
 	return tree:root():named_descendant_for_range(range[1], range[2], range[1], range[2])
 end
 
+-- Detect Markdown nodes (inline math, fallback to block)
 local function get_markdown_node_at_cursor()
-	if not has_treesitter then
-		return nil
-	end
 	local row, col = unpack(vim.api.nvim_win_get_cursor(0))
 	local range = { row - 1, col }
 	local buf = vim.api.nvim_get_current_buf()
 
+	-- try inline grammar
 	local ok, parser = pcall(ts.get_parser, buf, "markdown_inline")
 	if not ok or not parser then
+		-- fallback to block grammar
 		ok, parser = pcall(ts.get_parser, buf, "markdown")
 		if not ok or not parser then
 			return nil
@@ -116,6 +115,7 @@ local function get_markdown_node_at_cursor()
 	return tree:root():named_descendant_for_range(range[1], range[2], range[1], range[2])
 end
 
+-- Simple dollar-sign fallback in single line
 local function is_in_math_markdown_fallback()
 	local line = vim.api.nvim_get_current_line()
 	local col = vim.api.nvim_win_get_cursor(0)[2]
@@ -138,6 +138,7 @@ local function is_in_math_markdown_fallback()
 	return in_math
 end
 
+-- Robust fallback: detect $$ ... $$ spanning multiple lines
 local function is_in_mathblock_markdown_lines()
 	local buf = vim.api.nvim_get_current_buf()
 	local row = vim.api.nvim_win_get_cursor(0)[1]
@@ -154,17 +155,21 @@ local function is_in_mathblock_markdown_lines()
 	end
 	for j = start_line + 1, #lines do
 		if lines[j]:match("^%s*%$%$%s*$") then
+			-- cursor strictly between the two $$ lines
 			return row > start_line and row < j
 		end
 	end
 	return false
 end
 
+-- Markdown math-zone check
 local function in_mathzone_markdown()
+	-- first, robust block fallback
 	if is_in_mathblock_markdown_lines() then
 		return true
 	end
 
+	-- fallback to single-line $ checks
 	if not has_treesitter then
 		return is_in_math_markdown_fallback()
 	end
@@ -183,64 +188,22 @@ local function in_mathzone_markdown()
 		if t == "inline" then
 			local buf = vim.api.nvim_get_current_buf()
 			local txt = get_node_text(node, buf)
+			local cursor_col = vim.api.nvim_win_get_cursor(0)[2]
+			local srow, scol = node:start()
+			local rel = cursor_col - scol
 			if txt then
-				local cursor_col = vim.api.nvim_win_get_cursor(0)[2]
-				local _, scol = node:start()
-				local rel_col = cursor_col - scol
-
 				local in_math = false
-				local current_pos = 1
-				while current_pos <= #txt do
-					local next_dollar = txt:find("$", current_pos, true)
-					local next_dollar_dollar = txt:find("$$", current_pos, true)
-
-					local delimiter_pos = nil
-					local delimiter_len = 0
-					local is_double = false
-
-					if
-						next_dollar_dollar
-						and (not next_dollar or next_dollar_dollar < next_dollar or next_dollar_dollar == next_dollar)
-					then
-						if next_dollar and next_dollar_dollar == next_dollar then
-							delimiter_pos = next_dollar_dollar
-							delimiter_len = 2
-							is_double = true
-						else
-							delimiter_pos = next_dollar_dollar
-							delimiter_len = 2
-							is_double = true
-						end
-					elseif next_dollar then
-						delimiter_pos = next_dollar
-						delimiter_len = 1
-						is_double = false
-					else
-						delimiter_pos = #txt + 2
+				for i = 1, #txt do
+					if i < #txt and txt:sub(i, i + 1) == "$$" then
+						in_math = not in_math
+						i = i + 1
+					elseif txt:sub(i, i) == "$" then
+						in_math = not in_math
 					end
-
-					if rel_col < (delimiter_pos - 1) then
+					if i >= rel then
 						return in_math
 					end
-
-					if delimiter_len > 0 then
-						in_math = not in_math
-						current_pos = delimiter_pos + delimiter_len
-
-						if is_double and rel_col == (delimiter_pos - 1) then
-							return true
-						end
-						if is_double and rel_col == delimiter_pos then
-							return in_math
-						end
-						if not is_double and rel_col == (delimiter_pos - 1) then
-							return in_math
-						end
-					else
-						current_pos = #txt + 1 -- Exit loop if no more delimiters
-					end
 				end
-				return in_math
 			end
 		end
 		node = node:parent()
@@ -249,32 +212,25 @@ local function in_mathzone_markdown()
 	return is_in_math_markdown_fallback()
 end
 
+-- Public API: detect mathzone in .tex or .md
 function M.in_mathzone()
-	local ft = vim.bo.filetype
-	if ft == "markdown" or ft == "quarto" or ft == "rmd" then -- Added common markdown variants
+	if vim.bo.filetype == "markdown" then
 		return in_mathzone_markdown()
-	elseif ft == "tex" or ft == "latex" or ft == "plaintex" then -- Added common tex variants
-		if not has_treesitter then
-			return false
-		end
+	elseif vim.bo.filetype == "tex" then
 		local node = get_latex_node_at_cursor()
 		if not node then
 			return false
 		end
 		local buf = vim.api.nvim_get_current_buf()
 		while node do
-			local node_type = node:type()
-			if MATH_NODES[node_type] then
+			if MATH_NODES[node:type()] then
 				return true
-			elseif node_type == "math_environment" or node_type == "generic_environment" then
-				local name_field = node:child(0) and node:child(0):field("name")
+			elseif node:type() == "math_environment" or node:type() == "generic_environment" then
+				local name_field = node:child(0):field("name")
 				if name_field and name_field[1] then
-					local env_node = name_field[1]
-					if env_node then
-						local env = get_node_text(env_node, buf)
-						if env and MATH_ENVIRONMENTS[env:match("^%*?(%a+)%*?$")] then -- Handle starred envs too
-							return true
-						end
+					local env = get_node_text(name_field[1], buf)
+					if env and MATH_ENVIRONMENTS[env:match("%a+")] then
+						return true
 					end
 				end
 			end
