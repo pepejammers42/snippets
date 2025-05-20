@@ -117,6 +117,22 @@ M = {
 			{ i(1), i(0) }
 		)
 	),
+	autosnippet(
+		{ trig = "kdm", name = "Jekyll KaTeX block", dscr = "Jekyll KaTeX math block" },
+		fmta(
+			[[
+	{% katexmm %}
+
+	$$
+	<>
+	$$
+
+	{% endkatexmm %}
+	<>
+			]],
+			{ i(1), i(0) }
+		)
+	),
 
 	autosnippet(
 		{ trig = "dm", name = "\\[...\\]", dscr = "display math" },
