@@ -88,21 +88,25 @@ local function block_dollar_fallback()
 	local buf = vim.api.nvim_get_current_buf()
 	local row = vim.api.nvim_win_get_cursor(0)[1]
 	local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-	local open_line
-	for i = row, 1, -1 do
-		if lines[i]:match("^%s*%$%$%s*$") then
-			open_line = i
-			break
+
+	-- Find all $$ lines and their positions
+	local math_delimiters = {}
+	for i = 1, #lines do
+		if lines[i] and lines[i]:match("^%s*%$%$%s*$") then
+			table.insert(math_delimiters, i)
 		end
 	end
-	if not open_line then
-		return false
-	end
-	for j = open_line + 1, #lines do
-		if lines[j]:match("^%s*%$%$%s*$") then
-			return row > open_line and row < j
+
+	-- Check if current row is inside a math block
+	for i = 1, #math_delimiters, 2 do
+		local start_line = math_delimiters[i]
+		local end_line = math_delimiters[i + 1]
+
+		if end_line and row > start_line and row < end_line then
+			return true
 		end
 	end
+
 	return false
 end
 
